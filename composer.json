@@ -13,6 +13,9 @@
         "symfony/yaml": "^7.0",
         "nadi-pro/nadi-php": "^1.0"
     },
+    "autoload": {
+
+    },
     "require-dev": {
         "laravel/pint": "^1.14"
     },
