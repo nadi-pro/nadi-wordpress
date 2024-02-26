@@ -29,6 +29,16 @@ class Nadi
 
         $this->config_file = dirname(dirname(__FILE__)).'/config/nadi.yaml';
 
+        // Ensure config file exists
+        if (! file_exists($this->config_file)) {
+            // Fetch content from GitHub
+            $github_url = 'https://raw.githubusercontent.com/nadi-pro/shipper/master/nadi.reference.yaml';
+            $reference_content = file_get_contents($github_url);
+
+            // Create the config file and write the content
+            file_put_contents($this->config_file, $reference_content);
+        }
+
         $this->config = $this->getConfig();
 
         add_action('admin_init', [$this, 'registerSettings']);
@@ -117,45 +127,42 @@ class Nadi
         Exception::missingConfigFile();
     }
 
+    private function removeConfig($force_reload = false)
+    {
+        if (file_exists($this->config_file)) {
+            return unlink($this->config_file);
+        }
+
+        Exception::missingConfigFile();
+    }
+
     public static function activate()
     {
-        // Instantiate the class
         $nadi = new self();
 
-        // Ensure config directory exists
-        $config_dir = dirname($nadi->config_file);
-        if (! file_exists($config_dir)) {
-            mkdir($config_dir, 0755, true);
+        $config = $nadi->getConfig(true);
+        if ($config) {
+            // Update the value of nadi.storage
+            $config['nadi']['storage'] = $nadi->getLogPath();
+
+            // Convert the array back to YAML format
+            $updated_yaml = Yaml::dump($config, 4, 2);
+
+            // Write the updated YAML content back to the file
+            file_put_contents($nadi->config_file, $updated_yaml);
+
+            update_option('nadi_storage', $config['nadi']['storage']);
         }
 
-        // Ensure config file exists
-        if (! file_exists($nadi->config_file)) {
-            // Fetch content from GitHub
-            $github_url = 'https://raw.githubusercontent.com/nadi-pro/shipper/master/nadi.reference.yaml';
-            $reference_content = file_get_contents($github_url);
-
-            // Create the config file and write the content
-            file_put_contents($nadi->config_file, $reference_content);
-
-            $config = $nadi->getConfig();
-            if ($config) {
-                // Update the value of nadi.storage
-                $config['nadi']['storage'] = $nadi->getLogPath();
-
-                // Convert the array back to YAML format
-                $updated_yaml = Yaml::dump($config, 4, 2);
-
-                // Write the updated YAML content back to the file
-                file_put_contents($nadi->config_file, $updated_yaml);
-
-                update_option('nadi_storage', $config['nadi']['storage']);
-            }
-        }
+        Shipper::install();
     }
 
     public static function deactivate()
     {
+        $nadi = new self();
+        $nadi->removeConfig();
 
+        // Shipper::uninstall();
     }
 
     public function updateConfig($key, $value)
