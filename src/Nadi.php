@@ -25,6 +25,8 @@ class Nadi
 
         $this->loader = new Loader();
 
+        $this->config_file = dirname(dirname(__FILE__)).'/config/nadi.yaml';
+
         add_action('admin_init', [$this, 'register_settings']);
 
         add_action('admin_menu', [$this, 'add_settings_page']);
@@ -115,7 +117,24 @@ class Nadi
 
     public static function activate()
     {
+        // Instantiate the class
+        $nadi = new self();
 
+        // Ensure config directory exists
+        $config_dir = dirname($nadi->config_file);
+        if (! file_exists($config_dir)) {
+            mkdir($config_dir, 0755, true);
+        }
+
+        // Ensure config file exists
+        if (! file_exists($nadi->config_file)) {
+            // Fetch content from GitHub
+            $github_url = 'https://raw.githubusercontent.com/nadi-pro/shipper/master/nadi.reference.yaml';
+            $reference_content = file_get_contents($github_url);
+
+            // Create the config file and write the content
+            file_put_contents($nadi->config_file, $reference_content);
+        }
     }
 
     public static function deactivate()
