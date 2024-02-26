@@ -1,0 +1,22 @@
+{
+    "name": "nadi-pro/nadi-wordpress",
+    "description": "Monitoring applications made simple for developers. Monitor applications crashes with Nadi, your Crash Care Companion",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nasrul Hazim Bin Mohamad",
+            "email": "nasrulhazim.m@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/yaml": "^7.0",
+        "nadi-pro/nadi-php": "^1.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.14"
+    },
+    "scripts": {
+        "format" : "@php vendor/bin/pint"
+    }
+}

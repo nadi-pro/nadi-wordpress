@@ -10,7 +10,6 @@
  *
  * @link              https://nadi.pro
  * @since             1.0.0
- * @package           Nadi
  *
  * @wordpress-plugin
  * Plugin Name:       Nadi
@@ -26,8 +25,8 @@
  */
 
 // If this file is called directly, abort.
-if ( ! defined( 'WPINC' ) ) {
-	die;
+if (! defined('WPINC')) {
+    exit;
 }
 
 /**
@@ -35,34 +34,88 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'NADI_VERSION', '1.0.0' );
+define('NADI_VERSION', '1.0.0');
+
+if (! is_composer_version_valid()) {
+    add_action('admin_notices', 'nadi_missing_composer_notice');
+
+    return;
+}
+
+if (! file_exists(plugin_dir_path(__FILE__).'vendor')) {
+    shell_exec('composer install');
+}
+
+// Include Composer autoloader
+require plugin_dir_path(__FILE__).'vendor/autoload.php';
+
+/**
+ * Check if Composer is installed.
+ *
+ * @return bool Whether Composer is installed or not.
+ */
+function is_composer_installed()
+{
+    return file_exists(plugin_dir_path(__FILE__).'vendor/autoload.php');
+}
+
+/**
+ * Check if Composer version is at least 2.0.
+ *
+ * @return bool Whether Composer version is valid or not.
+ */
+function is_composer_version_valid()
+{
+    $composer_version_output = shell_exec('composer --version');
+    if (preg_match('/Composer version (\d+\.\d+\.\d+)/', $composer_version_output, $matches)) {
+        $composer_version = $matches[1];
+
+        return version_compare($composer_version, '2.0', '>=');
+    }
+
+    return false;
+}
+
+/**
+ * Display admin notice if Composer is missing or invalid.
+ */
+function nadi_missing_composer_notice()
+{
+    ?>
+    <div class="error">
+        <p><?php _e('My Plugin requires Composer version 2.0 or higher. Please make sure Composer is installed and up-to-date, then run <code>composer install</code>.', 'my-plugin'); ?></p>
+    </div>
+    <?php
+}
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-nadi-activator.php
  */
-function activate_nadi() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-nadi-activator.php';
-	Nadi_Activator::activate();
+function activate_nadi()
+{
+    require_once plugin_dir_path(__FILE__).'includes/class-nadi-activator.php';
+    Nadi_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-nadi-deactivator.php
  */
-function deactivate_nadi() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-nadi-deactivator.php';
-	Nadi_Deactivator::deactivate();
+function deactivate_nadi()
+{
+    require_once plugin_dir_path(__FILE__).'includes/class-nadi-deactivator.php';
+    Nadi_Deactivator::deactivate();
 }
 
-register_activation_hook( __FILE__, 'activate_nadi' );
-register_deactivation_hook( __FILE__, 'deactivate_nadi' );
+register_activation_hook(__FILE__, 'activate_nadi');
+register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
 /**
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path( __FILE__ ) . 'includes/class-nadi.php';
+require plugin_dir_path(__FILE__).'includes/class-nadi.php';
 
 /**
  * Begins execution of the plugin.
@@ -73,10 +126,11 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-nadi.php';
  *
  * @since    1.0.0
  */
-function run_nadi() {
+function run_nadi()
+{
 
-	$plugin = new Nadi();
-	$plugin->run();
+    $plugin = new Nadi();
+    $plugin->run();
 
 }
 run_nadi();

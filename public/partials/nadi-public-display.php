@@ -7,9 +7,6 @@
  *
  * @link       https://nadi.pro
  * @since      1.0.0
- *
- * @package    Nadi
- * @subpackage Nadi/public/partials
  */
 ?>
 
