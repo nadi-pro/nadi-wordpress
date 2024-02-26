@@ -8,6 +8,8 @@ class Nadi
 {
     private $config_file;
 
+    private $config;
+
     protected $loader;
 
     protected $plugin_name;
@@ -27,9 +29,16 @@ class Nadi
 
         $this->config_file = dirname(dirname(__FILE__)).'/config/nadi.yaml';
 
-        add_action('admin_init', [$this, 'register_settings']);
+        $this->config = $this->getConfig();
 
-        add_action('admin_menu', [$this, 'add_settings_page']);
+        add_action('admin_init', [$this, 'registerSettings']);
+
+        add_action('admin_menu', [$this, 'addSettingsPage']);
+    }
+
+    public function getLogPath()
+    {
+        return dirname(dirname(__FILE__)).'/log';
     }
 
     public function run()
@@ -37,22 +46,22 @@ class Nadi
         $this->loader->run();
     }
 
-    public function get_plugin_name()
+    public function getPluginName()
     {
         return $this->plugin_name;
     }
 
-    public function get_loader()
+    public function getLoader()
     {
         return $this->loader;
     }
 
-    public function get_version()
+    public function getVersion()
     {
         return $this->version;
     }
 
-    public function register_settings()
+    public function registerSettings()
     {
         // Register a setting for API key
         register_setting('nadi_settings', 'nadi_api_key');
@@ -64,19 +73,19 @@ class Nadi
         register_setting('nadi_settings', 'nadi_collector_endpoint');
 
         // Read existing configuration and update settings accordingly
-        $config = $this->read_config();
+        $config = $this->getConfig();
         if ($config) {
             update_option('nadi_api_key', $config['nadi']['apiKey']);
             update_option('nadi_application_key', $config['nadi']['token']);
         }
     }
 
-    public function add_settings_page()
+    public function addSettingsPage()
     {
-        add_options_page('Nadi Settings', 'Nadi', 'manage_options', 'nadi_settings', [$this, 'render_settings_page']);
+        add_options_page('Nadi Settings', 'Nadi', 'manage_options', 'nadi_settings', [$this, 'renderSettingsPage']);
     }
 
-    public function render_settings_page()
+    public function renderSettingsPage()
     {
         ?>
         <div class="wrap">
@@ -104,15 +113,15 @@ class Nadi
         <?php
     }
 
-    private function read_config()
+    private function getConfig()
     {
         if (file_exists($this->config_file)) {
-            $config = Yaml::parseFile($this->config_file);
-
-            return $config;
+            return ! $this->config
+                ? Yaml::parseFile($this->config_file)
+                : $this->config;
         }
 
-        return false;
+        Exception::missingConfigFile();
     }
 
     public static function activate()
@@ -134,11 +143,38 @@ class Nadi
 
             // Create the config file and write the content
             file_put_contents($nadi->config_file, $reference_content);
+
+            $config = $nadi->getConfig();
+            if ($config) {
+                // Update the value of nadi.storage
+                $config['nadi']['storage'] = $nadi->getLogPath();
+
+                // Convert the array back to YAML format
+                $updated_yaml = Yaml::dump($config, 4, 2);
+
+                // Write the updated YAML content back to the file
+                file_put_contents($nadi->config_file, $updated_yaml);
+
+                update_option( 'nadi_storage', $config['nadi']['storage']);
+            }
         }
     }
 
     public static function deactivate()
     {
 
+    }
+
+    public function updateConfig($key, $value)
+    {
+        $config = $this->getConfig();
+
+        $config['nadi'][$key] = $value;
+
+        $updated_yaml = Yaml::dump($config, 4, 2);
+
+        file_put_contents($this->config_file, $updated_yaml);
+
+        update_option( 'nadi_'.$key, $config['nadi'][$key]);
     }
 }
