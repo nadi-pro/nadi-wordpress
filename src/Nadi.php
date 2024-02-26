@@ -69,9 +69,6 @@ class Nadi
         // Register a setting for Application key
         register_setting('nadi_settings', 'nadi_application_key');
 
-        // Register a setting for Collector Endpoint (for enterprise users)
-        register_setting('nadi_settings', 'nadi_collector_endpoint');
-
         // Read existing configuration and update settings accordingly
         $config = $this->getConfig();
         if ($config) {
@@ -96,15 +93,11 @@ class Nadi
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row">API Key:</th>
-                        <td><input type="text" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
+                        <td><input type="password" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">Application Key:</th>
-                        <td><input type="text" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Collector Endpoint:</th>
-                        <td><input type="text" name="nadi_collector_endpoint" value="<?php echo esc_attr(get_option('nadi_collector_endpoint', 'https://api.nadi.pro')); ?>" /></td>
+                        <td><input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
                     </tr>
                 </table>
                 <?php submit_button(); ?>
@@ -113,10 +106,10 @@ class Nadi
         <?php
     }
 
-    private function getConfig()
+    private function getConfig($force_reload = false)
     {
         if (file_exists($this->config_file)) {
-            return ! $this->config
+            return ! $this->config || $force_reload
                 ? Yaml::parseFile($this->config_file)
                 : $this->config;
         }
@@ -167,7 +160,7 @@ class Nadi
 
     public function updateConfig($key, $value)
     {
-        $config = $this->getConfig();
+        $config = $this->getConfig(true);
 
         $config['nadi'][$key] = $value;
 
