@@ -35,6 +35,7 @@ define('NADI_VERSION', '1.0.0');
 
 if (version_compare(PHP_VERSION, '8.2', '<')) {
     add_action('admin_notices', 'nadi_php_version_notice');
+
     return;
 }
 
@@ -50,7 +51,8 @@ require plugin_dir_path(__FILE__).'vendor/autoload.php';
 /**
  * Display admin notice if minimum PHP version requirement is not met.
  */
-function nadi_php_version_notice() {
+function nadi_php_version_notice()
+{
     ?>
     <div class="error">
         <p><?php _e('Nadi requires PHP version 8.2 or higher. Please upgrade PHP to run this plugin.', 'nadi'); ?></p>
@@ -80,50 +82,53 @@ function nadi_missing_composer_notice()
     <?php
 }
 
-
 /**
  * Class to check Composer installation and version.
  */
-class ComposerChecker {
+class ComposerChecker
+{
     /**
      * Check if Composer is installed.
      *
      * @return bool Whether Composer is installed or not.
      */
-    public function isInstalled() {
-        return file_exists(plugin_dir_path(__FILE__) . 'vendor/autoload.php');
+    public function isInstalled()
+    {
+        return file_exists(plugin_dir_path(__FILE__).'vendor/autoload.php');
     }
 }
 
 /**
  * Class to install Composer and run 'composer install'.
  */
-class ComposerInstaller {
+class ComposerInstaller
+{
     /**
      * Install Composer.
      */
-    public function installComposer() {
+    public function installComposer()
+    {
         // Install Composer
-        exec('cd ' . plugin_dir_path(__FILE__) . ' && php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"');
-        exec('cd ' . plugin_dir_path(__FILE__) . ' && php composer-setup.php');
-        exec('cd ' . plugin_dir_path(__FILE__) . ' && php -r "unlink(\'composer-setup.php\');"');
+        exec('cd '.plugin_dir_path(__FILE__).' && php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"');
+        exec('cd '.plugin_dir_path(__FILE__).' && php composer-setup.php');
+        exec('cd '.plugin_dir_path(__FILE__).' && php -r "unlink(\'composer-setup.php\');"');
     }
 
     /**
      * Run 'composer install'.
      */
-    public function runComposerInstall() {
+    public function runComposerInstall()
+    {
         // Run 'composer install'
-        exec('cd ' . plugin_dir_path(__FILE__) . ' && composer install');
+        exec('cd '.plugin_dir_path(__FILE__).' && composer install');
     }
 }
 
 /** Activation */
-
 function activate_nadi()
 {
-	$composerChecker = new ComposerChecker();
-    if (!$composerChecker->isInstalled()) {
+    $composerChecker = new ComposerChecker();
+    if (! $composerChecker->isInstalled()) {
         // Install Composer
         $composerInstaller = new ComposerInstaller();
         $composerInstaller->installComposer();
@@ -131,7 +136,7 @@ function activate_nadi()
         // Run 'composer install'
         $composerInstaller->runComposerInstall();
     }
-	
+
     Nadi::activate();
 }
 
