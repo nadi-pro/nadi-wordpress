@@ -155,7 +155,7 @@ class Nadi
                 // Write the updated YAML content back to the file
                 file_put_contents($nadi->config_file, $updated_yaml);
 
-                update_option( 'nadi_storage', $config['nadi']['storage']);
+                update_option('nadi_storage', $config['nadi']['storage']);
             }
         }
     }
@@ -175,6 +175,6 @@ class Nadi
 
         file_put_contents($this->config_file, $updated_yaml);
 
-        update_option( 'nadi_'.$key, $config['nadi'][$key]);
+        update_option('nadi_'.$key, $config['nadi'][$key]);
     }
 }
