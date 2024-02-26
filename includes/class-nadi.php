@@ -79,6 +79,11 @@ class Nadi {
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
+		 // Register plugin settings
+		 add_action('admin_init', array($this, 'register_settings'));
+
+		 // Add settings page to admin menu
+		 add_action('admin_menu', array($this, 'add_settings_page'));
 	}
 
 	/**
@@ -214,5 +219,50 @@ class Nadi {
 	public function get_version() {
 		return $this->version;
 	}
+
+	// Register plugin settings
+    public function register_settings() {
+        // Register a setting for API key
+        register_setting('nadi_settings', 'nadi_api_key');
+
+        // Register a setting for Application key
+        register_setting('nadi_settings', 'nadi_application_key');
+
+        // Register a setting for Collector Endpoint (for enterprise users)
+        register_setting('nadi_settings', 'nadi_collector_endpoint');
+    }
+
+    // Add settings page to admin menu
+    public function add_settings_page() {
+        add_options_page('Nadi Settings', 'Nadi', 'manage_options', 'nadi_settings', array($this, 'render_settings_page'));
+    }
+
+	// Function to render the settings page
+    public function render_settings_page() {
+        ?>
+        <div class="wrap">
+            <h2>Nadi Settings</h2>
+            <form method="post" action="options.php">
+                <?php settings_fields('nadi_settings'); ?>
+                <?php do_settings_sections('nadi_settings'); ?>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row">API Key:</th>
+                        <td><input type="text" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Application Key:</th>
+                        <td><input type="text" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">Collector Endpoint:</th>
+                        <td><input type="text" name="nadi_collector_endpoint" value="<?php echo esc_attr(get_option('nadi_collector_endpoint', 'https://api.nadi.pro')); ?>" /></td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
 
 }

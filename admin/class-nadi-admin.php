@@ -100,4 +100,21 @@ class Nadi_Admin {
 
 	}
 
+	public function register_settings()
+	{
+		// Register a setting for API key
+		register_setting('nadi_settings', 'nadi_api_key');
+
+		// Register a setting for Application key
+		register_setting('nadi_settings', 'nadi_application_key');
+
+		// Register a setting for Collector Endpoint (for enterprise users)
+		register_setting('nadi_settings', 'nadi_collector_endpoint');
+	}
+
+	public function settings_page()
+	{
+		add_options_page('Nadi Settings', 'Nadi', 'manage_options', 'nadi_settings', 'nadi_render_settings_page');
+	}
+
 }
