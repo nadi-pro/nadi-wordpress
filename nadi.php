@@ -24,30 +24,39 @@
  * Domain Path:       /languages
  */
 
+use Nadi\WordPress\Nadi;
+
 // If this file is called directly, abort.
 if (! defined('WPINC')) {
     exit;
 }
 
-/**
- * Currently plugin version.
- * Start at version 1.0.0 and use SemVer - https://semver.org
- * Rename this for your plugin and update it as you release new versions.
- */
 define('NADI_VERSION', '1.0.0');
 
-if (! is_composer_version_valid()) {
+if (version_compare(PHP_VERSION, '8.2', '<')) {
+    add_action('admin_notices', 'nadi_php_version_notice');
+    return;
+}
+
+if (! is_composer_installed()) {
     add_action('admin_notices', 'nadi_missing_composer_notice');
 
     return;
 }
 
-if (! file_exists(plugin_dir_path(__FILE__).'vendor')) {
-    shell_exec('composer install');
-}
-
 // Include Composer autoloader
 require plugin_dir_path(__FILE__).'vendor/autoload.php';
+
+/**
+ * Display admin notice if minimum PHP version requirement is not met.
+ */
+function nadi_php_version_notice() {
+    ?>
+    <div class="error">
+        <p><?php _e('Nadi requires PHP version 8.2 or higher. Please upgrade PHP to run this plugin.', 'nadi'); ?></p>
+    </div>
+    <?php
+}
 
 /**
  * Check if Composer is installed.
@@ -60,77 +69,79 @@ function is_composer_installed()
 }
 
 /**
- * Check if Composer version is at least 2.0.
- *
- * @return bool Whether Composer version is valid or not.
- */
-function is_composer_version_valid()
-{
-    $composer_version_output = shell_exec('composer --version');
-    if (preg_match('/Composer version (\d+\.\d+\.\d+)/', $composer_version_output, $matches)) {
-        $composer_version = $matches[1];
-
-        return version_compare($composer_version, '2.0', '>=');
-    }
-
-    return false;
-}
-
-/**
  * Display admin notice if Composer is missing or invalid.
  */
 function nadi_missing_composer_notice()
 {
     ?>
     <div class="error">
-        <p><?php _e('My Plugin requires Composer version 2.0 or higher. Please make sure Composer is installed and up-to-date, then run <code>composer install</code>.', 'my-plugin'); ?></p>
+        <p><?php _e('Nadi requires Composer version 2.0 or higher. Please make sure Composer is installed and up-to-date, then run <code>composer install</code>.', 'nadi'); ?></p>
     </div>
     <?php
 }
 
+
 /**
- * The code that runs during plugin activation.
- * This action is documented in includes/class-nadi-activator.php
+ * Class to check Composer installation and version.
  */
-function activate_nadi()
-{
-    require_once plugin_dir_path(__FILE__).'includes/class-nadi-activator.php';
-    Nadi_Activator::activate();
+class ComposerChecker {
+    /**
+     * Check if Composer is installed.
+     *
+     * @return bool Whether Composer is installed or not.
+     */
+    public function isInstalled() {
+        return file_exists(plugin_dir_path(__FILE__) . 'vendor/autoload.php');
+    }
 }
 
 /**
- * The code that runs during plugin deactivation.
- * This action is documented in includes/class-nadi-deactivator.php
+ * Class to install Composer and run 'composer install'.
  */
+class ComposerInstaller {
+    /**
+     * Install Composer.
+     */
+    public function installComposer() {
+        // Install Composer
+        exec('cd ' . plugin_dir_path(__FILE__) . ' && php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"');
+        exec('cd ' . plugin_dir_path(__FILE__) . ' && php composer-setup.php');
+        exec('cd ' . plugin_dir_path(__FILE__) . ' && php -r "unlink(\'composer-setup.php\');"');
+    }
+
+    /**
+     * Run 'composer install'.
+     */
+    public function runComposerInstall() {
+        // Run 'composer install'
+        exec('cd ' . plugin_dir_path(__FILE__) . ' && composer install');
+    }
+}
+
+/** Activation */
+
+function activate_nadi()
+{
+	$composerChecker = new ComposerChecker();
+    if (!$composerChecker->isInstalled()) {
+        // Install Composer
+        $composerInstaller = new ComposerInstaller();
+        $composerInstaller->installComposer();
+
+        // Run 'composer install'
+        $composerInstaller->runComposerInstall();
+    }
+	
+    Nadi::activate();
+}
+
 function deactivate_nadi()
 {
-    require_once plugin_dir_path(__FILE__).'includes/class-nadi-deactivator.php';
-    Nadi_Deactivator::deactivate();
+    Nadi::deactivate();
 }
 
 register_activation_hook(__FILE__, 'activate_nadi');
 register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
-/**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing site hooks.
- */
-require plugin_dir_path(__FILE__).'includes/class-nadi.php';
-
-/**
- * Begins execution of the plugin.
- *
- * Since everything within the plugin is registered via hooks,
- * then kicking off the plugin from this point in the file does
- * not affect the page life cycle.
- *
- * @since    1.0.0
- */
-function run_nadi()
-{
-
-    $plugin = new Nadi();
-    $plugin->run();
-
-}
-run_nadi();
+$plugin = (new Nadi());
+$plugin->run();
