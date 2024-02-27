@@ -6,13 +6,13 @@ use PharData;
 
 class Shipper
 {
-    private $GH_REPO = 'nadi-pro/shipper';
+    private $repository = 'nadi-pro/shipper';
 
-    private $OS;
+    private $operating_system;
 
     public function __construct()
     {
-        $this->OS = php_uname('s');
+        $this->operating_system = php_uname('s');
     }
 
     public function isInstalled()
@@ -78,23 +78,41 @@ class Shipper
 
     private function getLatestVersion()
     {
-        $url = "https://api.github.com/repos/{$this->GH_REPO}/releases/latest";
-        $response = file_get_contents($url);
+        $url = "https://api.github.com/repos/{$this->repository}/releases/latest";
+
+        // Initialize cURL session
+        $ch = curl_init();
+
+        // Set cURL options
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0'); // GitHub API requires a user-agent
+
+        // Execute cURL request
+        $response = curl_exec($ch);
+
+        // Check for errors
         if ($response === false) {
             return false;
         }
+
+        // Close cURL session
+        curl_close($ch);
+
+        // Decode JSON response
         $data = json_decode($response, true);
 
-        return $data['tag_name'] ?? false;
+        // Return tag name if available
+        return isset($data['tag_name']) ? $data['tag_name'] : false;
     }
 
     private function downloadBinary($version)
     {
-        $os = strtolower($this->OS);
+        $os = strtolower($this->operating_system);
         $osType = $this->getOSType();
         $ghRepoBin = "shipper-$version-$os-$osType.tar.gz";
         $tmpDir = sys_get_temp_dir();
-        $link = "https://github.com/{$this->GH_REPO}/releases/download/{$version}/{$ghRepoBin}";
+        $link = "https://github.com/{$this->repository}/releases/download/{$version}/{$ghRepoBin}";
         $binaryData = file_get_contents($link);
         $tmpFilePath = $tmpDir.'/'.$ghRepoBin;
         file_put_contents($tmpFilePath, $binaryData);
