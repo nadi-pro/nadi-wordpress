@@ -6,13 +6,33 @@ use PharData;
 
 class Shipper
 {
-    private $repository = 'nadi-pro/shipper';
+    private string $repository = 'nadi-pro/shipper';
 
-    private $operating_system;
+    private string $operating_system;
+
+    private string $config_path;
 
     public function __construct()
     {
         $this->operating_system = php_uname('s');
+    }
+
+    public function run()
+    {
+        $command = $this->getBinaryPath() . ' --config='. $this->getConfigPath() .' --record';
+        exec($command);
+    }
+
+    public function setConfigPath(string $path): self
+    {
+        $this->config_path = $path;
+
+        return $this;
+    }
+
+    public function getConfigPath(): string
+    {
+        return $this->config_path;
     }
 
     public function isInstalled()
