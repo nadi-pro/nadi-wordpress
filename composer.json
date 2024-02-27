@@ -16,7 +16,10 @@
     "autoload": {
         "psr-4": {
             "Nadi\\WordPress\\": "src/"
-        }
+        },
+        "files": [
+            "support/helpers.php"
+        ]
     },
     "require-dev": {
         "laravel/pint": "^1.14"

@@ -17,7 +17,7 @@ class Shipper
         $this->operating_system = php_uname('s');
     }
 
-    public function run()
+    public static function send()
     {
         $command = $this->getBinaryPath().' --config='.$this->getConfigPath().' --record';
         exec($command);
@@ -67,6 +67,19 @@ class Shipper
         $binaryPath = $shipper->downloadBinary($version);
         $shipper->extractBinary($binaryPath);
         $shipper->setPermissions();
+        $shipper->setCron();
+    }
+
+    private function setCron()
+    {
+        add_action('send_nadi_log_event', 'sendNadiLog');
+
+        if (! wp_next_scheduled('send_nadi_log_event')) {
+            wp_schedule_event(time(), 'minute', 'send_nadi_log_event');
+        }
+
+        // Hook into the scheduled event and check for lock file
+        add_action('send_nadi_log_event', 'sendNadiLogHandler');
     }
 
     public static function uninstall()
