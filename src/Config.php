@@ -14,11 +14,11 @@ class Config
         $this->list = [
             'shipper' => [
                 'config' => dirname(dirname(__FILE__)).'/config/nadi.yaml',
-                'bin' => dirname(dirname(__FILE__)).'/bin/shipper'
+                'bin' => dirname(dirname(__FILE__)).'/bin/shipper',
             ],
             'log' => [
-                'path' => dirname(dirname(__FILE__)).'/log'
-            ]
+                'path' => dirname(dirname(__FILE__)).'/log',
+            ],
         ];
     }
 

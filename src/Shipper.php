@@ -19,7 +19,7 @@ class Shipper
 
     public function run()
     {
-        $command = $this->getBinaryPath() . ' --config='. $this->getConfigPath() .' --record';
+        $command = $this->getBinaryPath().' --config='.$this->getConfigPath().' --record';
         exec($command);
     }
 
