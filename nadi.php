@@ -32,109 +32,31 @@ if (! defined('WPINC')) {
 }
 
 define('NADI_VERSION', '1.0.0');
+define('NADI_DIR', plugin_dir_path(__FILE__));
 
-if (version_compare(PHP_VERSION, '8.2', '<')) {
-    add_action('admin_notices', 'nadi_php_version_notice');
+require_once NADI_DIR.'/classes/Composer.php';
+require_once NADI_DIR.'/classes/PHP.php';
 
-    return;
-}
-
-if (! is_composer_installed()) {
-    add_action('admin_notices', 'nadi_missing_composer_notice');
+if (! PHP::isValid()) {
+    add_action('admin_notices', 'PHP::notice');
 
     return;
 }
 
-// Include Composer autoloader
-require plugin_dir_path(__FILE__).'vendor/autoload.php';
+if (! Composer::isInstalled()) {
+    add_action('admin_notices', 'Composer::notice');
 
-/**
- * Display admin notice if minimum PHP version requirement is not met.
- */
-function nadi_php_version_notice()
-{
-    ?>
-    <div class="error">
-        <p><?php _e('Nadi requires PHP version 8.2 or higher. Please upgrade PHP to run this plugin.', 'nadi'); ?></p>
-    </div>
-    <?php
+    return;
 }
 
-/**
- * Check if Composer is installed.
- *
- * @return bool Whether Composer is installed or not.
- */
-function is_composer_installed()
-{
-    return file_exists(plugin_dir_path(__FILE__).'vendor/autoload.php');
-}
-
-/**
- * Display admin notice if Composer is missing or invalid.
- */
-function nadi_missing_composer_notice()
-{
-    ?>
-    <div class="error">
-        <p><?php _e('Nadi requires Composer version 2.0 or higher. Please make sure Composer is installed and up-to-date, then run <code>composer install</code>.', 'nadi'); ?></p>
-    </div>
-    <?php
-}
-
-/**
- * Class to check Composer installation and version.
- */
-class ComposerChecker
-{
-    /**
-     * Check if Composer is installed.
-     *
-     * @return bool Whether Composer is installed or not.
-     */
-    public function isInstalled()
-    {
-        return file_exists(plugin_dir_path(__FILE__).'vendor/autoload.php');
-    }
-}
-
-/**
- * Class to install Composer and run 'composer install'.
- */
-class ComposerInstaller
-{
-    /**
-     * Install Composer.
-     */
-    public function installComposer()
-    {
-        // Install Composer
-        exec('cd '.plugin_dir_path(__FILE__).' && php -r "copy(\'https://getcomposer.org/installer\', \'composer-setup.php\');"');
-        exec('cd '.plugin_dir_path(__FILE__).' && php composer-setup.php');
-        exec('cd '.plugin_dir_path(__FILE__).' && php -r "unlink(\'composer-setup.php\');"');
-    }
-
-    /**
-     * Run 'composer install'.
-     */
-    public function runComposerInstall()
-    {
-        // Run 'composer install'
-        exec('cd '.plugin_dir_path(__FILE__).' && composer install');
-    }
-}
+require NADI_DIR.'/vendor/autoload.php';
 
 /** Activation */
 function activate_nadi()
 {
-    $composerChecker = new ComposerChecker();
-    if (! $composerChecker->isInstalled()) {
-        // Install Composer
-        $composerInstaller = new ComposerInstaller();
-        $composerInstaller->installComposer();
-
-        // Run 'composer install'
-        $composerInstaller->runComposerInstall();
+    if (! Composer::isInstalled()) {
+        Composer::install();
+        Composer::installDependencies();
     }
 
     Nadi::activate();
