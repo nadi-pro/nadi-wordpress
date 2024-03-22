@@ -2,8 +2,6 @@
 
 namespace Nadi\WordPress;
 
-use Symfony\Component\Yaml\Yaml;
-
 class Nadi
 {
     private $config_file;
@@ -102,11 +100,7 @@ class Nadi
         register_setting('nadi_settings', 'nadi_application_key');
 
         // Read existing configuration and update settings accordingly
-        $config = $this->getConfig();
-        if ($config) {
-            update_option('nadi_api_key', $config['nadi']['apiKey']);
-            update_option('nadi_application_key', $config['nadi']['token']);
-        }
+        $this->config->register();
     }
 
     public function addSettingsPage()
@@ -138,26 +132,6 @@ class Nadi
         <?php
     }
 
-    private function getConfig($force_reload = false)
-    {
-        if (file_exists($this->config_file)) {
-            return ! $this->config || $force_reload
-                ? Yaml::parseFile($this->config_file)
-                : $this->config;
-        }
-
-        Exception::missingConfigFile();
-    }
-
-    private function removeConfig($force_reload = false)
-    {
-        if (file_exists($this->config_file)) {
-            return unlink($this->config_file);
-        }
-
-        Exception::missingConfigFile();
-    }
-
     public static function activate()
     {
         $nadi = new self();
@@ -177,14 +151,8 @@ class Nadi
 
     public function updateConfig($key, $value)
     {
-        $config = $this->getConfig(true);
+        $this->config->update($key, $value);
 
-        $config['nadi'][$key] = $value;
-
-        $updated_yaml = Yaml::dump($config, 4, 2);
-
-        file_put_contents($this->config_file, $updated_yaml);
-
-        update_option('nadi_'.$key, $config['nadi'][$key]);
+        return $this;
     }
 }

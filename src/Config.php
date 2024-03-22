@@ -49,7 +49,39 @@ class Config
         return $this;
     }
 
-    private function removeConfig($force_reload = false)
+    public function update($key, $value)
+    {
+        $shipper = $this->get('shipper');
+
+        $config = $this->parseYaml($shipper['config-path']);
+
+        $config['nadi'][$key] = $value;
+
+        $updated_yaml = Yaml::dump($config, 4, 2);
+
+        file_put_contents($shipper['config-path'], $updated_yaml);
+
+        update_option('nadi_'.$key, $config['nadi'][$key]);
+    }
+
+    public function parseYaml($path)
+    {
+        return Yaml::parseFile($path);
+    }
+
+    public function register()
+    {
+        $shipper = $this->get('shipper');
+
+        $config = $this->parseYaml($shipper['config-path']);
+
+        update_option('nadi_api_key', $config['nadi']['apiKey']);
+        update_option('nadi_application_key', $config['nadi']['token']);
+
+        return $this;
+    }
+
+    public function removeConfig()
     {
         $shipper = $this->get('shipper');
         if (file_exists($shipper['config-path'])) {
