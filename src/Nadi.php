@@ -16,6 +16,10 @@ class Nadi
 
     protected $version;
 
+    protected $post_data;
+
+    protected $request_method;
+
     public function __construct()
     {
         if (defined('NADI_VERSION')) {
@@ -46,6 +50,27 @@ class Nadi
         add_action('admin_menu', [$this, 'addSettingsPage']);
     }
 
+    public function setRequestMethod($method): self
+    {
+        $this->request_method = $method;
+
+        return $this;
+    }
+
+    public function setPostData($data): self
+    {
+        $this->post_data = $data;
+
+        return $this;
+
+        return $this;
+    }
+
+    public function isFormSubmission(): bool
+    {
+        return $this->request_method == 'POST' && isset($this->post_data['submit']);
+    }
+
     public function getLogPath()
     {
         return dirname(dirname(__FILE__)).'/log';
@@ -53,6 +78,14 @@ class Nadi
 
     public function run()
     {
+        if ($this->isFormSubmission()) {
+            $api_key = sanitize_text_field($this->post_data['nadi_api_key']);
+            $application_key = sanitize_text_field($this->post_data['nadi_application_key']);
+
+            $this->updateConfig('apiKey', $api_key);
+            $this->updateConfig('token', $application_key);
+        }
+
         $this->loader->run();
     }
 

@@ -70,13 +70,7 @@ function deactivate_nadi()
 register_activation_hook(__FILE__, 'activate_nadi');
 register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
-$plugin = (new Nadi());
-$plugin->run();
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
-    $api_key = sanitize_text_field($_POST['nadi_api_key']);
-    $application_key = sanitize_text_field($_POST['nadi_application_key']);
-
-    $plugin->updateConfig('apiKey', $api_key);
-    $plugin->updateConfig('token', $application_key);
-}
+$nadi = (new Nadi())
+    ->setRequestMethod($_SERVER['REQUEST_METHOD'])
+    ->setPostData($_POST)
+    ->run();
