@@ -4,8 +4,6 @@ namespace Nadi\WordPress;
 
 class Nadi
 {
-    private $config_file;
-
     private Config $config;
 
     protected $loader;
@@ -66,11 +64,12 @@ class Nadi
     public function run()
     {
         if ($this->isFormSubmission()) {
+            $transporter = $this->post_data['nadi_transporter'];
             $api_key = sanitize_text_field($this->post_data['nadi_api_key']);
             $application_key = sanitize_text_field($this->post_data['nadi_application_key']);
 
-            $this->updateConfig('apiKey', $api_key);
-            $this->updateConfig('token', $application_key);
+            $this->updateConfig($transporter, 'apiKey', $api_key);
+            $this->updateConfig($transporter, 'token', $application_key);
         }
 
         $this->loader->run();
@@ -125,6 +124,16 @@ class Nadi
                         <th scope="row">Application Key:</th>
                         <td><input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
                     </tr>
+                    <tr valign="top">
+                        <th scope="row">Transporter:</th>
+                        <td>
+                            <select name="nadi_transporter">
+                                <option disabled readonly>Please select one</option>
+                                <option value="shipper" <?php echo get_option('nadi_transporter') == 'shipper' ? 'selected' : ''; ?>>Shipper</option>
+                                <option value="http"  <?php echo get_option('nadi_transporter') == 'http' ? 'selected' : ''; ?>>Http</option>
+                            </select>
+                        </td>
+                    </tr>
                 </table>
                 <?php submit_button(); ?>
             </form>
@@ -145,13 +154,11 @@ class Nadi
     {
         $nadi = new self();
         $nadi->config->removeConfig();
-
-        // Shipper::uninstall();
     }
 
-    public function updateConfig($key, $value)
+    public function updateConfig($transporter, $key, $value)
     {
-        $this->config->update($key, $value);
+        $this->config->update($transporter, $key, $value);
 
         return $this;
     }

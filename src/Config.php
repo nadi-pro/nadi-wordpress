@@ -2,6 +2,8 @@
 
 namespace Nadi\WordPress;
 
+use Symfony\Component\Yaml\Yaml;
+
 class Config
 {
     private $list = [];
@@ -49,19 +51,28 @@ class Config
         return $this;
     }
 
-    public function update($key, $value)
+    public function update($transporter, $key, $value)
     {
-        $shipper = $this->get('shipper');
+        if ($transporter == 'shipper') {
+            // shipper
+            $shipper = $this->get('shipper');
+            $config = $this->parseYaml($shipper['config-path']);
+            $config['nadi'][$key] = $value;
+            $updated_yaml = Yaml::dump($config, 4, 2);
+            file_put_contents($shipper['config-path'], $updated_yaml);
+        }
 
-        $config = $this->parseYaml($shipper['config-path']);
+        if ($transporter == 'http') {
+            // http
+            $http_Key = $key == 'apiKey' ? 'key' : $key;
+            $http = $this->get('http');
+            $config = $this->parseYaml($http['config-path']);
+            $config[$http_Key] = $value;
+            $updated_yaml = Yaml::dump($config, 4, 2);
+            file_put_contents($http['config-path'], $updated_yaml);
+        }
 
-        $config['nadi'][$key] = $value;
-
-        $updated_yaml = Yaml::dump($config, 4, 2);
-
-        file_put_contents($shipper['config-path'], $updated_yaml);
-
-        update_option('nadi_'.$key, $config['nadi'][$key]);
+        update_option('nadi_'.$key, $value);
     }
 
     public function parseYaml($path)
