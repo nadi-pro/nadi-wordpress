@@ -39,6 +39,13 @@ class Loader
 
     }
 
+    public function setup(): self
+    {
+        // setup predefine actions/filters
+
+        return $this;
+    }
+
     public function run()
     {
         foreach ($this->filters as $hook) {

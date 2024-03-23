@@ -31,9 +31,6 @@ if (! defined('WPINC')) {
     exit;
 }
 
-define('NADI_VERSION', '1.0.0');
-define('NADI_DIR', plugin_dir_path(__FILE__));
-
 require_once NADI_DIR.'/classes/Composer.php';
 require_once NADI_DIR.'/classes/PHP.php';
 
@@ -48,6 +45,9 @@ if (! Composer::isInstalled()) {
 
     return;
 }
+
+define('NADI_VERSION', '1.0.0');
+define('NADI_DIR', plugin_dir_path(__FILE__));
 
 require NADI_DIR.'/vendor/autoload.php';
 
