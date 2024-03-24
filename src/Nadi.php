@@ -33,6 +33,8 @@ class Nadi
         add_action('admin_init', [$this, 'registerSettings']);
 
         add_action('admin_menu', [$this, 'addSettingsPage']);
+
+        add_action('admin_head', [$this, 'addSettingsPageIcon']);
     }
 
     public function setRequestMethod($method): self
@@ -104,7 +106,23 @@ class Nadi
 
     public function addSettingsPage()
     {
-        add_options_page('Nadi Settings', 'Nadi', 'manage_options', 'nadi_settings', [$this, 'renderSettingsPage']);
+        global $menu;
+
+        \add_menu_page(
+            'Nadi Settings',
+            'Nadi',
+            'manage_options',
+            'nadi-settings',
+            [$this, 'renderSettingsPage'],
+            '',
+            50
+        );
+    }
+
+    public function addSettingsPageIcon()
+    {
+        global $menu;
+        $menu[50][6] = 'dashicons-analytics';
     }
 
     public function renderSettingsPage()

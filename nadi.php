@@ -31,6 +31,9 @@ if (! defined('WPINC')) {
     exit;
 }
 
+define('NADI_VERSION', '1.0.0');
+define('NADI_DIR', plugin_dir_path(__FILE__));
+
 require_once NADI_DIR.'/classes/Composer.php';
 require_once NADI_DIR.'/classes/PHP.php';
 
@@ -45,9 +48,6 @@ if (! Composer::isInstalled()) {
 
     return;
 }
-
-define('NADI_VERSION', '1.0.0');
-define('NADI_DIR', plugin_dir_path(__FILE__));
 
 require NADI_DIR.'/vendor/autoload.php';
 
@@ -65,6 +65,16 @@ function activate_nadi()
 function deactivate_nadi()
 {
     Nadi::deactivate();
+}
+
+if (! function_exists('dd')) {
+    function dd(...$args)
+    {
+        echo '<pre>';
+        var_dump($args);
+        echo '</pre>';
+        exit;
+    }
 }
 
 register_activation_hook(__FILE__, 'activate_nadi');
