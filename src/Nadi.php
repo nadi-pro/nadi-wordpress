@@ -25,16 +25,17 @@ class Nadi
         }
         $this->plugin_name = 'nadi';
 
-        $this->loader = new Loader();
-
         $this->config = new Config();
+
+        $this->loader = new Loader($this->config);
+    }
+
+    public function setup(): self
+    {
         $this->config->setup();
+        $this->loader->setup();
 
-        add_action('admin_init', [$this, 'registerSettings']);
-
-        add_action('admin_menu', [$this, 'addSettingsPage']);
-
-        add_action('admin_head', [$this, 'addSettingsPageIcon']);
+        return $this;
     }
 
     public function setRequestMethod($method): self
@@ -90,73 +91,6 @@ class Nadi
     public function getVersion()
     {
         return $this->version;
-    }
-
-    public function registerSettings()
-    {
-        // Register a setting for API key
-        register_setting('nadi_settings', 'nadi_api_key');
-
-        // Register a setting for Application key
-        register_setting('nadi_settings', 'nadi_application_key');
-
-        // Read existing configuration and update settings accordingly
-        $this->config->register();
-    }
-
-    public function addSettingsPage()
-    {
-        global $menu;
-
-        \add_menu_page(
-            'Nadi Settings',
-            'Nadi',
-            'manage_options',
-            'nadi-settings',
-            [$this, 'renderSettingsPage'],
-            '',
-            50
-        );
-    }
-
-    public function addSettingsPageIcon()
-    {
-        global $menu;
-        $menu[50][6] = 'dashicons-analytics';
-    }
-
-    public function renderSettingsPage()
-    {
-        ?>
-        <div class="wrap">
-            <h2>Nadi Settings</h2>
-            <form method="post" action="options.php">
-                <?php settings_fields('nadi_settings'); ?>
-                <?php do_settings_sections('nadi_settings'); ?>
-                <table class="form-table">
-                    <tr valign="top">
-                        <th scope="row">API Key:</th>
-                        <td><input type="password" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Application Key:</th>
-                        <td><input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">Transporter:</th>
-                        <td>
-                            <select name="nadi_transporter">
-                                <option disabled readonly>Please select one</option>
-                                <option value="shipper" <?php echo get_option('nadi_transporter') == 'shipper' ? 'selected' : ''; ?>>Shipper</option>
-                                <option value="http"  <?php echo get_option('nadi_transporter') == 'http' ? 'selected' : ''; ?>>Http</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-                <?php submit_button(); ?>
-            </form>
-        </div>
-        <?php
     }
 
     public static function activate()

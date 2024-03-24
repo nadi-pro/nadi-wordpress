@@ -81,6 +81,7 @@ register_activation_hook(__FILE__, 'activate_nadi');
 register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
 $nadi = (new Nadi())
+    ->setup()
     ->setRequestMethod($_SERVER['REQUEST_METHOD'])
     ->setPostData($_POST)
     ->run();
