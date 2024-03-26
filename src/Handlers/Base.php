@@ -19,7 +19,7 @@ class Base
 
     public function __construct()
     {
-        $this->transporter = get_opt('nadi_transporter', 'http');
+        $this->transporter = get_option('nadi_transporter', 'http');
         $this->user = $this->getUser();
         $this->environment = $this->getEnvironment();
     }
