@@ -2,7 +2,7 @@
 
 namespace Nadi\WordPress\Concerns;
 
-trait InteractsWithWordPressUser
+trait InteractsWithUser
 {
     /**
      * Retrieve the current user info from WordPress.

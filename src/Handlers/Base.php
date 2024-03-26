@@ -2,21 +2,26 @@
 
 namespace Nadi\WordPress\Handlers;
 
-use Nadi\WordPress\Concerns\InteractsWithWordPressUser;
+use Nadi\WordPress\Concerns\InteractsWithEnvironment;
+use Nadi\WordPress\Concerns\InteractsWithUser;
 use Nadi\WordPress\Transporter;
 
 class Base
 {
-    use InteractsWithWordPressUser;
+    use InteractsWithEnvironment;
+    use InteractsWithUser;
 
     private Transporter $transporter;
 
     private $user;
 
+    private $environment;
+
     public function __construct()
     {
-        $this->transporter = app('nadi');
+        $this->transporter = get_opt('nadi_transporter', 'http');
         $this->user = $this->getUser();
+        $this->environment = $this->getEnvironment();
     }
 
     public function store(array $data)
