@@ -3,6 +3,7 @@
 namespace Nadi\WordPress;
 
 use Nadi\WordPress\Exceptions\WordPressException;
+use Nadi\WordPress\Handler\HandleExceptionEvent;
 
 class Loader
 {
@@ -33,6 +34,9 @@ class Loader
     {
         // capture WordPress Error from here.
         \add_action('wp_error_added', [$this, 'handleExceptions'], 1, 4);
+
+        // Set default exception handler
+        // set_exception_handler([HandleExceptionEvent::class, 'make']);
     }
 
     public function handleExceptions(string|int $code, string $message, mixed $data, WP_Error $error)
@@ -61,9 +65,6 @@ class Loader
 
         // Keep path to save the logs
         \register_setting('nadi_settings', 'nadi_storage');
-
-        // Read existing configuration and update settings accordingly
-        $this->config->register();
     }
 
     public function addSettingsPage()

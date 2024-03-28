@@ -92,7 +92,6 @@ class Nadi
             $this->updateConfig($transporter, 'apiKey', $api_key);
             $this->updateConfig($transporter, 'token', $application_key);
         }
-
     }
 
     public function getPluginName()

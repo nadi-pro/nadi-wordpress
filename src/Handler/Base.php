@@ -45,9 +45,11 @@ class Base
         if (isset($config['nadi'])) {
             $api_key = $config['nadi']['apiKey'];
             $application_key = $config['nadi']['token'];
+            $endpoint = $config['nadi']['endpoint'];
         } else {
             $api_key = $config['key'];
             $application_key = $config['token'];
+            $endpoint = $config['endpoint'];
         }
 
         $log_path = $this->getLogPath();
@@ -61,6 +63,7 @@ class Base
         return (new Http)->configure([
             'key' => $api_key,
             'token' => $application_key,
+            'endpoint' => $endpoint,
         ]);
     }
 
