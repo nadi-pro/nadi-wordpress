@@ -7,7 +7,7 @@ trait InteractsWithEnvironment
     /**
      * Retrieve the current user info from WordPress.
      */
-    protected function getEnvironment(): ?array
+    protected function getEnvironment(): string
     {
         $environment = defined('WP_NADI_ENV') ? WP_NADI_ENV : null;
 

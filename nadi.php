@@ -24,6 +24,8 @@
  * Domain Path:       /languages
  */
 
+use Nadi\WordPress\Exceptions\WordPressException;
+use Nadi\WordPress\Handler\HandleExceptionEvent;
 use Nadi\WordPress\Nadi;
 
 // If this file is called directly, abort.
@@ -79,21 +81,25 @@ function deactivate_nadi()
     Nadi::deactivate();
 }
 
-if (! function_exists('dd')) {
-    function dd(...$args)
-    {
-        echo '<pre>';
-        var_dump($args);
-        echo '</pre>';
-        exit;
-    }
-}
-
 register_activation_hook(__FILE__, 'activate_nadi');
 register_deactivation_hook(__FILE__, 'deactivate_nadi');
+
+set_exception_handler([HandleExceptionEvent::class, 'make']);
 
 $nadi = (new Nadi())
     ->setRequestMethod($_SERVER['REQUEST_METHOD'])
     ->setPostData($_POST)
     ->setup()
     ->run();
+
+$error = new WP_Error('my_custom_code_error', 'An error occurred in my code.', ['file' => __FILE__, 'line' => __LINE__]);
+
+$error_data = $error->get_error_data();
+$message = $error->get_error_message();
+$code = (int) $error->get_error_code();
+$trace = debug_backtrace();
+$file = $trace[0]['file'];
+$line = $trace[0]['line'];
+$class = get_class($error);
+
+throw new WordPressException($trace, $message, $file, $line, $code, $error_data, $class);

@@ -2,6 +2,8 @@
 
 namespace Nadi\WordPress;
 
+use Nadi\WordPress\Exceptions\WordPressException;
+
 class Loader
 {
     protected $actions;
@@ -16,22 +18,42 @@ class Loader
 
     public function setup(): self
     {
-        add_action('admin_init', [$this, 'registerSettings']);
+        \add_action('init', [$this, 'registerHandlers']);
 
-        add_action('admin_menu', [$this, 'addSettingsPage']);
+        \add_action('admin_init', [$this, 'registerSettings']);
 
-        add_action('admin_head', [$this, 'addSettingsPageIcon']);
+        \add_action('admin_menu', [$this, 'addSettingsPage']);
+
+        \add_action('admin_head', [$this, 'addSettingsPageIcon']);
 
         return $this;
+    }
+
+    public function registerHandlers()
+    {
+        \add_action('wp_error_added', [$this, 'handleExceptions'], 1, 4);
+    }
+
+    public function handleExceptions(string|int $code, string $message, mixed $data, WP_Error $error)
+    {
+        $error_data = $error->get_error_data();
+        $message = $error->get_error_message();
+        $code = $error->get_error_code();
+        $trace = debug_backtrace();
+        $file = $trace[0]['file'];
+        $line = $trace[0]['line'];
+        $class = get_class($error);
+
+        throw new WordPressException($message, $file, $line, $code, $error_data, $class);
     }
 
     public function registerSettings()
     {
         // Register a setting for API key
-        register_setting('nadi_settings', 'nadi_api_key');
+        \register_setting('nadi_settings', 'nadi_api_key');
 
         // Register a setting for Application key
-        register_setting('nadi_settings', 'nadi_application_key');
+        \register_setting('nadi_settings', 'nadi_application_key');
 
         // Read existing configuration and update settings accordingly
         $this->config->register();
@@ -90,17 +112,5 @@ class Loader
             </form>
         </div>
         <?php
-    }
-
-    public function run()
-    {
-        foreach ($this->filters as $hook) {
-            add_filter($hook['hook'], [$hook['component'], $hook['callback']], $hook['priority'], $hook['accepted_args']);
-        }
-
-        foreach ($this->actions as $hook) {
-            add_action($hook['hook'], [$hook['component'], $hook['callback']], $hook['priority'], $hook['accepted_args']);
-        }
-
     }
 }

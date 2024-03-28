@@ -1,10 +1,12 @@
 <?php
 
-namespace Nadi\WordPress\Handlers;
+namespace Nadi\WordPress\Handler;
 
+use Nadi\Transporter\Contract as Transporter;
+use Nadi\Transporter\Http;
+use Nadi\Transporter\Log;
 use Nadi\WordPress\Concerns\InteractsWithEnvironment;
 use Nadi\WordPress\Concerns\InteractsWithUser;
-use Nadi\WordPress\Transporter;
 
 class Base
 {
@@ -19,9 +21,20 @@ class Base
 
     public function __construct()
     {
-        $this->transporter = get_option('nadi_transporter', 'http');
+        $this->transporter = $this->getTransporter();
         $this->user = $this->getUser();
         $this->environment = $this->getEnvironment();
+    }
+
+    public function getTransporter()
+    {
+        $transporter = get_option('nadi_transporter', 'http');
+
+        if ($transporter == 'shipper') {
+            return new Log;
+        }
+
+        return new Http;
     }
 
     public function store(array $data)

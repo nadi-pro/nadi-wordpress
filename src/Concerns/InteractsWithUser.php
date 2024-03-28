@@ -9,7 +9,9 @@ trait InteractsWithUser
      */
     protected function getUser(): ?array
     {
-        $user = wp_get_current_user();
+        require ABSPATH.'wp-includes/pluggable.php';
+
+        $user = \wp_get_current_user();
 
         if (! $user || ($user instanceof WP_User && ! $user->exists())) {
             return [
