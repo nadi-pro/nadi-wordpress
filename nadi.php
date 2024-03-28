@@ -31,6 +31,17 @@ if (! defined('WPINC')) {
     exit;
 }
 
+// Don't load during plugin updates to prevent function signature changes causing issues between versions.
+if (is_admin()) {
+    if (isset($_GET['action']) && $_GET['action'] === 'upgrade-plugin') {
+        return;
+    }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'update-plugin') {
+        return;
+    }
+}
+
 define('NADI_VERSION', '1.0.0');
 define('NADI_DIR', plugin_dir_path(__FILE__));
 define('NADI_START', microtime(true));
@@ -82,7 +93,7 @@ register_activation_hook(__FILE__, 'activate_nadi');
 register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
 $nadi = (new Nadi())
-    ->setup()
     ->setRequestMethod($_SERVER['REQUEST_METHOD'])
     ->setPostData($_POST)
+    ->setup()
     ->run();
