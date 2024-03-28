@@ -31,6 +31,7 @@ class Loader
 
     public function registerHandlers()
     {
+        // capture WordPress Error from here.
         \add_action('wp_error_added', [$this, 'handleExceptions'], 1, 4);
     }
 
@@ -115,6 +116,15 @@ class Loader
                     </tr>
                 </table>
                 <?php submit_button(); ?>
+            </form>
+
+            <h2>Test Settings</h2>
+            <p>Test your Nadi settings by clicking on <strong>Test Connection</strong> button below</p>
+            <form method="post" action="options.php">
+                <?php settings_fields('nadi_settings'); ?>
+                <?php do_settings_sections('nadi_settings'); ?>
+                <input type="hidden" name="test" value="true">
+                <?php submit_button('Test Connection'); ?>
             </form>
         </div>
         <?php

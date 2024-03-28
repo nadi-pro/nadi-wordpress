@@ -53,10 +53,10 @@ class Config
 
     public function update($transporter, $key, $value)
     {
-        \update_option('nadi_transporter', $transporter, true);
+        \update_option('nadi_transporter', $transporter);
 
         if ($key == 'token') {
-            \update_option('nadi_application_key', $value, true);
+            \update_option('nadi_application_key', $value);
         }
 
         if ($transporter == 'shipper') {
@@ -68,7 +68,7 @@ class Config
             file_put_contents($shipper['config-path'], $updated_yaml);
 
             if ($key == 'apiKey') {
-                \update_option('nadi_api_key', $value, true);
+                \update_option('nadi_api_key', $value);
             }
         }
 
@@ -82,7 +82,7 @@ class Config
             file_put_contents($http['config-path'], $updated_yaml);
 
             if ($key == 'key') {
-                \update_option('nadi_api_key', $value, true);
+                \update_option('nadi_api_key', $value);
             }
         }
     }
@@ -94,11 +94,15 @@ class Config
 
     public function register()
     {
-        $shipper = $this->get(
+        $transporter = $this->get(
             get_option('nadi_transporter')
         );
 
-        $config = $this->parseYaml($shipper['config-path']);
+        if (empty($transporter)) {
+            $transporter = 'http';
+        }
+
+        $config = $this->parseYaml($transporter['config-path']);
 
         $api_key = isset($config['nadi']) ? $config['nadi']['apiKey'] : $config['key'];
         $application_key = isset($config['nadi']) ? $config['nadi']['token'] : $config['token'];

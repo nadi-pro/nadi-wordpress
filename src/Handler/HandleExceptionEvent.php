@@ -2,6 +2,7 @@
 
 namespace Nadi\WordPress\Handler;
 
+use Error;
 use Illuminate\Support\Arr;
 use Nadi\Data\ExceptionEntry;
 use Nadi\Data\Type;
@@ -10,9 +11,19 @@ use Nadi\WordPress\Exceptions\WordPressException;
 
 class HandleExceptionEvent extends Base
 {
-    public static function make(WordPressException $exception)
+    public static function make(Error|WordPressException $exception)
     {
-        return (new self())->handle($exception);
+        if ($exception instanceof WordPressException) {
+            return (new self())->handle($exception);
+        }
+
+        return (new self())->handle(new WordPressException(
+            $exception->getTrace(),
+            $exception->getMessage(),
+            $exception->getFile(),
+            $exception->getLine(),
+            $exception->getCode()
+        ));
     }
 
     /**
@@ -52,10 +63,6 @@ class HandleExceptionEvent extends Base
             )->toArray()
         );
 
-        try {
-            dd($this->getTransporter()->send());
-        } catch (\Throwable $th) {
-            dd($th);
-        }
+        // $this->getTransporter()->send();
     }
 }
