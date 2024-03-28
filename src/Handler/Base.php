@@ -72,6 +72,11 @@ class Base
         $this->transporter->store($data);
     }
 
+    public function send()
+    {
+        $this->transporter->send();
+    }
+
     public function hash($value)
     {
         return sha1($value);
