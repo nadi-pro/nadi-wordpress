@@ -33,7 +33,7 @@ class HandleExceptionEvent extends Base
                     'file' => $exception->file,
                     'line' => $exception->line,
                     'message' => $exception->getMessage(),
-                    'context' => null, // @todo
+                    'context' => $this->getUser(), // @todo
                     'trace' => $trace,
                     'line_preview' => ExceptionContext::get($exception),
                 ]
@@ -45,10 +45,17 @@ class HandleExceptionEvent extends Base
                     $exception->getMessage().
                     date('Y-m-d'))
             )->tags(
-                ['type' => 'exception']
+                [
+                    'type' => 'exception',
+                    'environment' => $this->getEnvironment(),
+                ]
             )->toArray()
         );
 
-        $this->getTransporter()->send();
+        try {
+            dd($this->getTransporter()->send());
+        } catch (\Throwable $th) {
+            dd($th);
+        }
     }
 }

@@ -32,7 +32,6 @@ class Nadi
 
     public function setup(): self
     {
-        $this->config->setup();
         $this->loader->setup();
 
         return $this;
