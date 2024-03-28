@@ -63,6 +63,6 @@ class HandleExceptionEvent extends Base
             )->toArray()
         );
 
-        dd($this->getTransporter()->send());
+        $this->getTransporter()->send();
     }
 }
