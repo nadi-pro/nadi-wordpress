@@ -92,14 +92,14 @@ $nadi = (new Nadi())
     ->setup()
     ->run();
 
-$error = new WP_Error('my_custom_code_error', 'An error occurred in my code.', ['file' => __FILE__, 'line' => __LINE__]);
+// $error = new WP_Error('my_custom_code_error', 'An error occurred in my code.', ['file' => __FILE__, 'line' => __LINE__]);
 
-$error_data = $error->get_error_data();
-$message = $error->get_error_message();
-$code = (int) $error->get_error_code();
-$trace = debug_backtrace();
-$file = $trace[0]['file'];
-$line = $trace[0]['line'];
-$class = get_class($error);
+// $error_data = $error->get_error_data();
+// $message = $error->get_error_message();
+// $code = (int) $error->get_error_code();
+// $trace = debug_backtrace();
+// $file = $trace[0]['file'];
+// $line = $trace[0]['line'];
+// $class = get_class($error);
 
-throw new WordPressException($trace, $message, $file, $line, $code, $error_data, $class);
+// throw new WordPressException($trace, $message, $file, $line, $code, $error_data, $class);

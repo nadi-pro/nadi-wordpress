@@ -34,7 +34,10 @@ class Base
             return new Log;
         }
 
-        return new Http;
+        return (new Http)->configure([
+            'key' => get_option('nadi_api_key'),
+            'token' => get_option('nadi_application_key'),
+        ]);
     }
 
     public function store(array $data)

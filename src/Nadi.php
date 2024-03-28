@@ -67,7 +67,7 @@ class Nadi
     public function run()
     {
         if ($this->isFormSubmission()) {
-            $transporter = $this->post_data['nadi_transporter'];
+            $transporter = sanitize_text_field($this->post_data['nadi_transporter']);
             $api_key = sanitize_text_field($this->post_data['nadi_api_key']);
             $application_key = sanitize_text_field($this->post_data['nadi_application_key']);
 

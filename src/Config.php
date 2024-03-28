@@ -46,13 +46,19 @@ class Config
             file_put_contents($http['config-path'], $content);
         }
 
-        update_option('nadi_storage', $this->get('log')['storage-path']);
+        \update_option('nadi_storage', $this->get('log')['storage-path']);
 
         return $this;
     }
 
     public function update($transporter, $key, $value)
     {
+        \update_option('nadi_transporter', $transporter, true);
+
+        if ($key == 'token') {
+            \update_option('nadi_application_key', $value, true);
+        }
+
         if ($transporter == 'shipper') {
             // shipper
             $shipper = $this->get('shipper');
@@ -60,6 +66,10 @@ class Config
             $config['nadi'][$key] = $value;
             $updated_yaml = Yaml::dump($config, 4, 2);
             file_put_contents($shipper['config-path'], $updated_yaml);
+
+            if ($key == 'apiKey') {
+                \update_option('nadi_api_key', $value, true);
+            }
         }
 
         if ($transporter == 'http') {
@@ -70,9 +80,11 @@ class Config
             $config[$http_Key] = $value;
             $updated_yaml = Yaml::dump($config, 4, 2);
             file_put_contents($http['config-path'], $updated_yaml);
-        }
 
-        update_option('nadi_'.$key, $value);
+            if ($key == 'key') {
+                \update_option('nadi_api_key', $value, true);
+            }
+        }
     }
 
     public function parseYaml($path)
@@ -82,12 +94,17 @@ class Config
 
     public function register()
     {
-        $shipper = $this->get('shipper');
+        $shipper = $this->get(
+            get_option('nadi_transporter')
+        );
 
         $config = $this->parseYaml($shipper['config-path']);
 
-        update_option('nadi_api_key', $config['nadi']['apiKey']);
-        update_option('nadi_application_key', $config['nadi']['token']);
+        $api_key = isset($config['nadi']) ? $config['nadi']['apiKey'] : $config['key'];
+        $application_key = isset($config['nadi']) ? $config['nadi']['token'] : $config['token'];
+
+        \update_option('nadi_api_key', $api_key);
+        \update_option('nadi_application_key', $application_key);
 
         return $this;
     }

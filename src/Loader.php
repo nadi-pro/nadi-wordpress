@@ -55,6 +55,12 @@ class Loader
         // Register a setting for Application key
         \register_setting('nadi_settings', 'nadi_application_key');
 
+        // Set the Transporter used
+        \register_setting('nadi_settings', 'nadi_transporter');
+
+        // Keep path to save the logs
+        \register_setting('nadi_settings', 'nadi_storage');
+
         // Read existing configuration and update settings accordingly
         $this->config->register();
     }
@@ -91,16 +97,16 @@ class Loader
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row">API Key:</th>
-                        <td><input type="password" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
+                        <td><input type="password"  name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" /></td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">Application Key:</th>
-                        <td><input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
+                        <td><input type="password"  name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" /></td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">Transporter:</th>
                         <td>
-                            <select name="nadi_transporter">
+                            <select name="nadi_transporter" id="nadi_transporter">
                                 <option disabled readonly>Please select one</option>
                                 <option value="shipper" <?php echo get_option('nadi_transporter') == 'shipper' ? 'selected' : ''; ?>>Shipper</option>
                                 <option value="http"  <?php echo get_option('nadi_transporter') == 'http' ? 'selected' : ''; ?>>Http</option>

@@ -48,5 +48,7 @@ class HandleExceptionEvent extends Base
                 ['type' => 'exception']
             )->toArray()
         );
+
+        $this->getTransporter()->send();
     }
 }
