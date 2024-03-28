@@ -33,6 +33,7 @@ if (! defined('WPINC')) {
 
 define('NADI_VERSION', '1.0.0');
 define('NADI_DIR', plugin_dir_path(__FILE__));
+define('NADI_START', microtime(true));
 
 require_once NADI_DIR.'/classes/Composer.php';
 require_once NADI_DIR.'/classes/PHP.php';
