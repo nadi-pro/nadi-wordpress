@@ -4,9 +4,9 @@ namespace Nadi\WordPress\Handler;
 
 use Error;
 use Illuminate\Support\Arr;
-use Nadi\Data\ExceptionEntry;
 use Nadi\Data\Type;
 use Nadi\WordPress\Actions\ExceptionContext;
+use Nadi\WordPress\Data\ExceptionEntry;
 use Nadi\WordPress\Exceptions\WordPressException;
 
 class HandleExceptionEvent extends Base

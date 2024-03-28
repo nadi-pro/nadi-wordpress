@@ -1,6 +1,6 @@
 <?php
 
-namespace Nadi\Laravel\Metric;
+namespace Nadi\WordPress\Metric;
 
 use Nadi\Metric\Base;
 

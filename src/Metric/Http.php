@@ -15,7 +15,7 @@ class Http extends Base
         $current_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         $uri = $route = str_replace($home_url, '', $current_uri);
-        $headers = get_headers(wp_unslash($_SERVER));
+        $headers = getallheaders();
 
         return [
             'http.client.duration' => $startTime ? floor((microtime(true) - $startTime) * 1000) : null,
