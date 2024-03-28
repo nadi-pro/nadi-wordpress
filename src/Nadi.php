@@ -4,6 +4,10 @@ namespace Nadi\WordPress;
 
 use Nadi\WordPress\Exceptions\WordPressException;
 
+/**
+ * @todo allow test the configuration by calling transporter->test()
+ * @todo allow verify the configuration by calling transporter->verify()
+ */
 class Nadi
 {
     private Config $config;
