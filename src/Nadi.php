@@ -29,7 +29,7 @@ class Nadi
         } else {
             $this->version = '1.0.0';
         }
-        $this->plugin_name = 'nadi';
+        $this->plugin_name = 'Nadi for WordPress';
 
         $this->config = new Config();
 
