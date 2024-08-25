@@ -14,10 +14,10 @@ class HandleExceptionEvent extends Base
     public static function make(Error|WordPressException $exception)
     {
         if ($exception instanceof WordPressException) {
-            return (new self())->handle($exception);
+            return (new self)->handle($exception);
         }
 
-        return (new self())->handle(new WordPressException(
+        return (new self)->handle(new WordPressException(
             $exception->getTrace(),
             $exception->getMessage(),
             $exception->getFile(),

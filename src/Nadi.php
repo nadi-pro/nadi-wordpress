@@ -31,7 +31,7 @@ class Nadi
         }
         $this->plugin_name = 'Nadi for WordPress';
 
-        $this->config = new Config();
+        $this->config = new Config;
 
         $this->loader = new Loader($this->config);
     }
@@ -88,13 +88,23 @@ class Nadi
             $class = get_class($error);
 
             throw new WordPressException($trace, $message, $file, $line, $code, $error_data, $class);
-        } elseif ($this->isFormSubmission()) {
+        }
+
+        if ($this->isFormSubmission()) {
             $transporter = sanitize_text_field($this->post_data['nadi_transporter']);
             $api_key = sanitize_text_field($this->post_data['nadi_api_key']);
             $application_key = sanitize_text_field($this->post_data['nadi_application_key']);
 
             $this->updateConfig($transporter, 'apiKey', $api_key);
             $this->updateConfig($transporter, 'token', $application_key);
+
+            $this->updateSamplingConfig([
+                'nadi_sampling_strategy' => sanitize_text_field($this->post_data['nad_sampling_strategy']),
+                'nadi_sampling_rate' => sanitize_text_field($this->post_data['nadi_sampling_rate']),
+                'nadi_base_rate' => sanitize_text_field($this->post_data['nadi_base_rate']),
+                'nadi_load_factor' => sanitize_text_field($this->post_data['nadi_load_factor']),
+                'nadi_interval_seconds' => sanitize_text_field($this->post_data['nadi_interval_seconds']),
+            ]);
         }
     }
 
@@ -115,7 +125,7 @@ class Nadi
 
     public static function activate()
     {
-        $nadi = new self();
+        $nadi = new self;
 
         $nadi->config->setup();
 
@@ -124,8 +134,13 @@ class Nadi
 
     public static function deactivate()
     {
-        $nadi = new self();
+        $nadi = new self;
         $nadi->config->removeConfig();
+    }
+
+    public function updateSamplingConfig($config)
+    {
+        $this->config->updateSampling($config);
     }
 
     public function updateConfig($transporter, $key, $value)

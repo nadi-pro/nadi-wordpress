@@ -57,7 +57,7 @@ class Shipper
 
     public static function install()
     {
-        $shipper = new self();
+        $shipper = new self;
 
         if ($shipper->isInstalled()) {
             return;
@@ -84,7 +84,7 @@ class Shipper
 
     public static function uninstall()
     {
-        $shipper = new self();
+        $shipper = new self;
 
         if ($shipper->isBinaryInstalled()) {
             unlink($shipper->getBinaryPath());
@@ -93,7 +93,7 @@ class Shipper
 
     public static function deactivate()
     {
-        $shipper = new self();
+        $shipper = new self;
 
         // need to disable the cron.
     }

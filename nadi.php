@@ -85,7 +85,7 @@ register_deactivation_hook(__FILE__, 'deactivate_nadi');
 
 set_exception_handler([HandleExceptionEvent::class, 'make']);
 
-$nadi = (new Nadi())
+$nadi = (new Nadi)
     ->setRequestMethod($_SERVER['REQUEST_METHOD'])
     ->setPostData($_POST)
     ->setup()

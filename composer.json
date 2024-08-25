@@ -11,7 +11,7 @@
     ],
     "require": {
         "symfony/yaml": "^7.0",
-        "nadi-pro/nadi-php": "^1.0",
+        "nadi-pro/nadi-php": "^1.1",
         "symfony/var-dumper": "^7.0"
     },
     "autoload": {

@@ -26,9 +26,6 @@ class Http extends Base
             'http.query' => $_SERVER['QUERY_STRING'],
             'http.uri' => $uri,
             'http.headers' => Arr::undot(collect($headers)
-                ->map(function ($header) {
-                    return $header[0];
-                })
                 ->reject(function ($header, $key) {
                     return in_array($key, [
                         'authorization', 'nadi-key',
