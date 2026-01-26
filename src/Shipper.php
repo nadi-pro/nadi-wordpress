@@ -2,60 +2,123 @@
 
 namespace Nadi\WordPress;
 
-use PharData;
+use Nadi\Shipper\BinaryManager;
+use Nadi\Shipper\Exceptions\ShipperException;
 
 class Shipper
 {
-    private string $repository = 'nadi-pro/shipper';
+    private BinaryManager $manager;
 
-    private string $operating_system;
+    private ?string $configPath = null;
 
-    private string $config_path;
-
-    public function __construct()
+    public function __construct(?string $binaryDirectory = null)
     {
-        $this->operating_system = php_uname('s');
+        $directory = $binaryDirectory ?? dirname(__DIR__).'/bin';
+        $this->manager = new BinaryManager($directory);
     }
 
-    public static function send()
-    {
-        $command = $this->getBinaryPath().' --config='.$this->getConfigPath().' --record';
-        exec($command);
-    }
-
+    /**
+     * Set the configuration file path.
+     */
     public function setConfigPath(string $path): self
     {
-        $this->config_path = $path;
+        $this->configPath = $path;
 
         return $this;
     }
 
-    public function getConfigPath(): string
+    /**
+     * Get the configuration file path.
+     */
+    public function getConfigPath(): ?string
     {
-        return $this->config_path;
+        return $this->configPath;
     }
 
-    public function isInstalled()
+    /**
+     * Check if the shipper binary is installed.
+     */
+    public function isInstalled(): bool
     {
-        return $this->isBinaryInstalled();
+        return $this->manager->isInstalled();
     }
 
-    private function isBinaryInstalled()
+    /**
+     * Get the full path to the shipper binary.
+     */
+    public function getBinaryPath(): string
     {
-        return file_exists($this->getBinaryPath());
+        return $this->manager->getBinaryPath();
     }
 
-    private function getBinaryPath()
+    /**
+     * Get the binary directory path.
+     */
+    public function getBinaryDirectory(): string
     {
-        return "{$this->getBinaryDirectory()}/shipper";
+        return $this->manager->getBinaryDirectory();
     }
 
-    private function getBinaryDirectory()
+    /**
+     * Get the currently installed version.
+     */
+    public function getInstalledVersion(): ?string
     {
-        return dirname(__DIR__).'/bin';
+        return $this->manager->getInstalledVersion();
     }
 
-    public static function install()
+    /**
+     * Send records using the shipper binary.
+     *
+     * @throws ShipperException
+     */
+    public function send(): array
+    {
+        if ($this->configPath === null) {
+            throw new ShipperException('Config path not set. Call setConfigPath() first.');
+        }
+
+        return $this->manager->execute([
+            '--config='.$this->configPath,
+            '--record',
+        ]);
+    }
+
+    /**
+     * Static method to send records (for backward compatibility with cron).
+     *
+     * @throws ShipperException
+     */
+    public static function sendRecords(?string $configPath = null): array
+    {
+        $shipper = new self;
+
+        $config = $configPath ?? self::getDefaultConfigPath();
+
+        if ($config === null) {
+            throw new ShipperException('Config path not provided and no default config found.');
+        }
+
+        return $shipper->setConfigPath($config)->send();
+    }
+
+    /**
+     * Get the default config path.
+     */
+    public static function getDefaultConfigPath(): ?string
+    {
+        $pluginDir = dirname(__DIR__);
+        $configPath = $pluginDir.'/nadi.yaml';
+
+        return file_exists($configPath) ? $configPath : null;
+    }
+
+    /**
+     * Install the shipper binary.
+     *
+     * @throws ShipperException
+     */
+    public static function install(): void
     {
         $shipper = new self;
 
@@ -63,131 +126,111 @@ class Shipper
             return;
         }
 
-        $version = $shipper->setVersion();
-        $binaryPath = $shipper->downloadBinary($version);
-        $shipper->extractBinary($binaryPath);
-        $shipper->setPermissions();
-        $shipper->setCron();
+        try {
+            $shipper->manager->install();
+            $shipper->setupCron();
+        } catch (ShipperException $e) {
+            self::logError('Failed to install shipper: '.$e->getMessage());
+
+            throw $e;
+        }
     }
 
-    private function setCron()
+    /**
+     * Uninstall the shipper binary.
+     */
+    public static function uninstall(): void
     {
+        $shipper = new self;
+
+        $shipper->clearCron();
+        $shipper->manager->uninstall();
+    }
+
+    /**
+     * Deactivate the shipper (stops cron but keeps binary).
+     */
+    public static function deactivate(): void
+    {
+        $shipper = new self;
+        $shipper->clearCron();
+    }
+
+    /**
+     * Activate the shipper (restarts cron if binary is installed).
+     */
+    public static function activate(): void
+    {
+        $shipper = new self;
+
+        if ($shipper->isInstalled()) {
+            $shipper->setupCron();
+        }
+    }
+
+    /**
+     * Set up the WordPress cron job.
+     */
+    private function setupCron(): void
+    {
+        if (! function_exists('add_action')) {
+            return;
+        }
+
         add_action('send_nadi_log_event', 'sendNadiLog');
 
         if (! wp_next_scheduled('send_nadi_log_event')) {
             wp_schedule_event(time(), 'minute', 'send_nadi_log_event');
         }
 
-        // Hook into the scheduled event and check for lock file
         add_action('send_nadi_log_event', 'sendNadiLogHandler');
     }
 
-    public static function uninstall()
+    /**
+     * Clear the WordPress cron job.
+     */
+    private function clearCron(): void
     {
-        $shipper = new self;
+        if (! function_exists('wp_clear_scheduled_hook')) {
+            return;
+        }
 
-        if ($shipper->isBinaryInstalled()) {
-            unlink($shipper->getBinaryPath());
+        wp_clear_scheduled_hook('send_nadi_log_event');
+    }
+
+    /**
+     * Log an error message.
+     */
+    private static function logError(string $message): void
+    {
+        if (function_exists('error_log')) {
+            error_log('[Nadi Shipper] '.$message);
         }
     }
 
-    public static function deactivate()
+    /**
+     * Show admin notice for errors.
+     */
+    public static function showAdminNotice(string $message, string $type = 'error'): void
     {
-        $shipper = new self;
-
-        // need to disable the cron.
-    }
-
-    private function setVersion()
-    {
-        $version = $this->getLatestVersion();
-        if (! $version) {
-            echo "\nThere was an error trying to check what is the latest version of shipper.\nPlease try again later.\n";
-            exit(1);
+        if (! function_exists('add_action')) {
+            return;
         }
 
-        return $version;
+        add_action('admin_notices', function () use ($message, $type) {
+            printf(
+                '<div class="notice notice-%s is-dismissible"><p>%s</p></div>',
+                esc_attr($type),
+                esc_html($message)
+            );
+        });
     }
 
-    private function getLatestVersion()
+    /**
+     * Get the underlying BinaryManager instance.
+     */
+    public function getManager(): BinaryManager
     {
-        $url = "https://api.github.com/repos/{$this->repository}/releases/latest";
-
-        // Initialize cURL session
-        $ch = curl_init();
-
-        // Set cURL options
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0'); // GitHub API requires a user-agent
-
-        // Execute cURL request
-        $response = curl_exec($ch);
-
-        // Check for errors
-        if ($response === false) {
-            return false;
-        }
-
-        // Close cURL session
-        curl_close($ch);
-
-        // Decode JSON response
-        $data = json_decode($response, true);
-
-        // Return tag name if available
-        return isset($data['tag_name']) ? $data['tag_name'] : false;
-    }
-
-    private function downloadBinary($version)
-    {
-        $os = strtolower($this->operating_system);
-        $osType = $this->getOSType();
-        $ghRepoBin = "shipper-$version-$os-$osType.tar.gz";
-        $tmpDir = sys_get_temp_dir();
-        $link = "https://github.com/{$this->repository}/releases/download/{$version}/{$ghRepoBin}";
-        $binaryData = file_get_contents($link);
-        $tmpFilePath = $tmpDir.'/'.$ghRepoBin;
-        file_put_contents($tmpFilePath, $binaryData);
-
-        return $tmpFilePath;
-    }
-
-    private function getOSType()
-    {
-        $osType = php_uname('m');
-        switch ($osType) {
-            case 'x86_64':
-            case 'amd64':
-                return 'amd64';
-            case 'i386':
-            case 'i486':
-            case 'i586':
-            case 'i686':
-            case 'i786':
-            case 'i886':
-            case 'i986':
-                return '386';
-            case 'aarch64':
-            case 'arm64':
-                return 'arm64';
-            default:
-                echo 'OS type not supported';
-                exit(2);
-        }
-    }
-
-    private function extractBinary($binaryPath)
-    {
-        $extractPath = $this->getBinaryDirectory();
-        $phar = new PharData($binaryPath);
-        $phar->extractTo($extractPath, null, true);
-        unlink($binaryPath);
-    }
-
-    private function setPermissions()
-    {
-        $shipperBinaryPath = "{$this->getBinaryDirectory()}/shipper";
-        chmod($shipperBinaryPath, 0755);
+        return $this->manager;
     }
 }

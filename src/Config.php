@@ -56,8 +56,8 @@ class Config
         $http = $this->get('http');
         if (! file_exists($http['config-path'])) {
             $content = Yaml::dump([
-                'key' => '',
-                'token' => '',
+                'apiKey' => '',   // Sanctum personal access token
+                'token' => '',    // Application identifier token
                 'version' => 'v1',
                 'endpoint' => 'https://nadi.pro/api/',
             ], 4, 2);
@@ -141,18 +141,28 @@ class Config
     {
         $this->updateTransporter($transporter);
 
-        switch ($transporter) {
-            case 'shipper':
-                $this->updateShipper($key, $value);
-                break;
-            case 'http':
-                $this->updateHttp($key, $value);
-                break;
-            case 'token':
-                $this->updateApplicationKey($value);
-            default:
-                // code...
-                break;
+if ($key == 'token') {
+            \update_option('nadi_application_key', $value);
+        }
+
+        if ($key == 'apiKey') {
+            \update_option('nadi_api_key', $value);
+        }
+
+        if ($transporter == 'shipper') {
+            $shipper = $this->get('shipper');
+            $config = $this->parseYaml($shipper['config-path']);
+            $config['nadi'][$key] = $value;
+            $updated_yaml = Yaml::dump($config, 4, 2);
+            file_put_contents($shipper['config-path'], $updated_yaml);
+        }
+
+        if ($transporter == 'http') {
+            $http = $this->get('http');
+            $config = $this->parseYaml($http['config-path']);
+            $config[$key] = $value;
+            $updated_yaml = Yaml::dump($config, 4, 2);
+            file_put_contents($http['config-path'], $updated_yaml);
         }
     }
 
@@ -163,21 +173,32 @@ class Config
 
     public function register()
     {
-        $transporter = $this->get(
-            get_option('nadi_transporter')
-        );
+        $transporterType = get_option('nadi_transporter');
 
-        if (empty($transporter)) {
-            $transporter = 'http';
+        if (empty($transporterType)) {
+            $transporterType = 'http';
+        }
+
+        $transporter = $this->get($transporterType);
+
+        if (empty($transporter) || ! isset($transporter['config-path'])) {
+            return $this;
         }
 
         $config = $this->parseYaml($transporter['config-path']);
 
-        $api_key = isset($config['nadi']) ? $config['nadi']['apiKey'] : $config['key'];
-        $application_key = isset($config['nadi']) ? $config['nadi']['token'] : $config['token'];
+        if (isset($config['nadi'])) {
+            // Shipper config format (nadi.yaml)
+            $apiKey = $config['nadi']['apiKey'] ?? '';
+            $token = $config['nadi']['token'] ?? '';
+        } else {
+            // HTTP config format (nadi-http.yaml)
+            $apiKey = $config['apiKey'] ?? $config['key'] ?? '';
+            $token = $config['token'] ?? '';
+        }
 
-        \update_option('nadi_api_key', $api_key);
-        \update_option('nadi_application_key', $application_key);
+        \update_option('nadi_api_key', $apiKey);
+        \update_option('nadi_application_key', $token);
 
         return $this;
     }

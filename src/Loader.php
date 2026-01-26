@@ -119,13 +119,15 @@ class Loader
                     <tr valign="top">
                         <th scope="row">API Key:</th>
                         <td>
-                            <input type="password" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" />
+<input type="password" name="nadi_api_key" value="<?php echo esc_attr(get_option('nadi_api_key')); ?>" class="regular-text" />
+                            <p class="description">Your Sanctum personal access token for authentication</p>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">Application Key:</th>
+                        <th scope="row">Token:</th>
                         <td>
-                            <input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" />
+                            <input type="password" name="nadi_application_key" value="<?php echo esc_attr(get_option('nadi_application_key')); ?>" class="regular-text" />
+                            <p class="description">Your application identifier token from Nadi dashboard</p>
                         </td>
                     </tr>
                     <tr valign="top">
@@ -134,8 +136,9 @@ class Loader
                             <select name="nadi_transporter" id="nadi_transporter">
                                 <option disabled readonly>Please select one</option>
                                 <option value="shipper" <?php echo get_option('nadi_transporter') == 'shipper' ? 'selected' : ''; ?>>Shipper</option>
-                                <option value="http"  <?php echo get_option('nadi_transporter') == 'http' ? 'selected' : ''; ?>>Http</option>
+                                <option value="http" <?php echo get_option('nadi_transporter') == 'http' ? 'selected' : ''; ?>>HTTP</option>
                             </select>
+                            <p class="description">Choose how to send data to Nadi</p>
                         </td>
                     </tr>
                     <tr valign="top">

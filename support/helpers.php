@@ -1,11 +1,16 @@
 <?php
 
+use Nadi\Shipper\Exceptions\ShipperException;
 use Nadi\WordPress\Shipper;
 
 if (! function_exists('sendNadiLog')) {
     function sendNadiLog()
     {
-        Shipper::send();
+        try {
+            Shipper::sendRecords();
+        } catch (ShipperException $e) {
+            error_log('[Nadi Shipper] Failed to send logs: '.$e->getMessage());
+        }
     }
 }
 
@@ -26,7 +31,10 @@ if (! function_exists('createNadiLockFile')) {
 if (! function_exists('deleteNadiLockFile')) {
     function deleteNadiLockFile()
     {
-        unlink(nadiLockPath());
+        $lockPath = nadiLockPath();
+        if (file_exists($lockPath)) {
+            unlink($lockPath);
+        }
     }
 }
 
@@ -35,10 +43,13 @@ if (! function_exists('sendNadiLogHandler')) {
     {
         if (! isNadiLockFileExists()) {
             createNadiLockFile();
-            sendNadiLog();
-            deleteNadiLockFile();
+            try {
+                sendNadiLog();
+            } finally {
+                deleteNadiLockFile();
+            }
         } else {
-            error_log('Nadi Shipper is already running.');
+            error_log('[Nadi Shipper] Shipper is already running, skipping this execution.');
         }
     }
 }
@@ -46,6 +57,6 @@ if (! function_exists('sendNadiLogHandler')) {
 if (! function_exists('nadiLockPath')) {
     function nadiLockPath()
     {
-        return dirname(dirname(__FILE__)).'/log/nadi.lock';
+        return dirname(__DIR__).'/log/nadi.lock';
     }
 }

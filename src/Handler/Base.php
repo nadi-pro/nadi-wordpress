@@ -79,12 +79,14 @@ class Base
         $config = $this->config()->parseYaml($this->config()->get($transporter)['config-path']);
 
         if (isset($config['nadi'])) {
-            $api_key = $config['nadi']['apiKey'];
-            $application_key = $config['nadi']['token'];
+            // Shipper config format (nadi.yaml)
+            $apiKey = $config['nadi']['apiKey'] ?? '';
+            $token = $config['nadi']['token'] ?? '';
             $endpoint = $config['nadi']['endpoint'];
         } else {
-            $api_key = $config['key'];
-            $application_key = $config['token'];
+            // HTTP config format (nadi-http.yaml)
+            $apiKey = $config['apiKey'] ?? $config['key'] ?? '';
+            $token = $config['token'] ?? '';
             $endpoint = $config['endpoint'];
         }
 
@@ -97,8 +99,8 @@ class Base
         }
 
         return (new Http)->configure([
-            'key' => $api_key,
-            'token' => $application_key,
+            'apiKey' => $apiKey,
+            'token' => $token,
             'endpoint' => $endpoint,
         ]);
     }
