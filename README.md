@@ -120,4 +120,5 @@ If the shipper binary fails to install:
 
 ## Documentation
 
-Refer to [documentation](https://docs.nadi.pro) for detailed installation and usage instructions.
+- [Project Documentation](docs/README.md) - Complete guides and reference
+- [Nadi Documentation](https://docs.nadi.pro) - Official Nadi documentation
