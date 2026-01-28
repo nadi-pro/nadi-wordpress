@@ -93,10 +93,10 @@ class Nadi
         if ($this->isFormSubmission()) {
             $transporter = sanitize_text_field($this->post_data['nadi_transporter']);
             $apiKey = sanitize_text_field($this->post_data['nadi_api_key']);
-            $token = sanitize_text_field($this->post_data['nadi_application_key']);
+            $appKey = sanitize_text_field($this->post_data['nadi_application_key']);
 
-$this->updateConfig($transporter, 'apiKey', $apiKey);
-            $this->updateConfig($transporter, 'token', $token);
+            $this->updateConfig($transporter, 'apiKey', $apiKey);
+            $this->updateConfig($transporter, 'appKey', $appKey);
 
             $this->updateSamplingConfig([
                 'nadi_sampling_strategy' => sanitize_text_field($this->post_data['nadi_sampling_strategy']),

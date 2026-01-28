@@ -56,8 +56,8 @@ class Config
         $http = $this->get('http');
         if (! file_exists($http['config-path'])) {
             $content = Yaml::dump([
-                'apiKey' => '',   // Sanctum personal access token
-                'token' => '',    // Application identifier token
+                'apiKey' => '',   // Sanctum personal access token (Authorization: Bearer)
+                'appKey' => '',   // Application identifier token (Nadi-App-Token header)
                 'version' => 'v1',
                 'endpoint' => 'https://nadi.pro/api/',
             ], 4, 2);
@@ -141,7 +141,7 @@ class Config
     {
         $this->updateTransporter($transporter);
 
-if ($key == 'token') {
+if ($key == 'appKey' || $key == 'token') {
             \update_option('nadi_application_key', $value);
         }
 
@@ -190,15 +190,15 @@ if ($key == 'token') {
         if (isset($config['nadi'])) {
             // Shipper config format (nadi.yaml)
             $apiKey = $config['nadi']['apiKey'] ?? '';
-            $token = $config['nadi']['token'] ?? '';
+            $appKey = $config['nadi']['appKey'] ?? $config['nadi']['token'] ?? '';
         } else {
             // HTTP config format (nadi-http.yaml)
             $apiKey = $config['apiKey'] ?? $config['key'] ?? '';
-            $token = $config['token'] ?? '';
+            $appKey = $config['appKey'] ?? $config['token'] ?? '';
         }
 
         \update_option('nadi_api_key', $apiKey);
-        \update_option('nadi_application_key', $token);
+        \update_option('nadi_application_key', $appKey);
 
         return $this;
     }

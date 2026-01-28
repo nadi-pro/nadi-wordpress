@@ -81,12 +81,12 @@ class Base
         if (isset($config['nadi'])) {
             // Shipper config format (nadi.yaml)
             $apiKey = $config['nadi']['apiKey'] ?? '';
-            $token = $config['nadi']['token'] ?? '';
+            $appKey = $config['nadi']['appKey'] ?? $config['nadi']['token'] ?? '';
             $endpoint = $config['nadi']['endpoint'];
         } else {
             // HTTP config format (nadi-http.yaml)
             $apiKey = $config['apiKey'] ?? $config['key'] ?? '';
-            $token = $config['token'] ?? '';
+            $appKey = $config['appKey'] ?? $config['token'] ?? '';
             $endpoint = $config['endpoint'];
         }
 
@@ -100,7 +100,7 @@ class Base
 
         return (new Http)->configure([
             'apiKey' => $apiKey,
-            'token' => $token,
+            'appKey' => $appKey,
             'endpoint' => $endpoint,
         ]);
     }
