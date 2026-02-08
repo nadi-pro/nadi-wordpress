@@ -5,7 +5,9 @@
       "Bash(composer format:*)",
       "Bash(composer install:*)",
       "Bash(php -v:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
