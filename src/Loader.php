@@ -148,7 +148,7 @@ class Loader
                                 <input type="password" name="nadi_application_key" value="<?php echo esc_attr($appKey); ?>" class="regular-text" />
                                 <p class="description">
                                     Your application identifier token from the Nadi dashboard.
-                                    <a href="https://nadi.pro" target="_blank" class="nadi-link">
+                                    <a href="https://nadi.pro/applications" target="_blank" class="nadi-link">
                                         Visit nadi.pro <span class="dashicons dashicons-external"></span>
                                     </a>
                                 </p>

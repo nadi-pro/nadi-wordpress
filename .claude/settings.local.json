@@ -4,7 +4,8 @@
       "Bash(markdownlint:*)",
       "Bash(composer format:*)",
       "Bash(composer install:*)",
-      "Bash(php -v:*)"
+      "Bash(php -v:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
