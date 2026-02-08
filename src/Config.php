@@ -168,7 +168,43 @@ if ($key == 'appKey' || $key == 'token') {
 
     public function parseYaml($path)
     {
+        if (! file_exists($path)) {
+            $this->ensureConfigFileExists($path);
+        }
+
         return Yaml::parseFile($path);
+    }
+
+    private function ensureConfigFileExists($path)
+    {
+        $http = $this->get('http');
+        $shipper = $this->get('shipper');
+
+        if ($path === $http['config-path']) {
+            $content = Yaml::dump([
+                'apiKey' => '',
+                'appKey' => '',
+                'version' => 'v1',
+                'endpoint' => 'https://nadi.pro/api/',
+            ], 4, 2);
+
+            file_put_contents($path, $content);
+        } elseif ($path === $shipper['config-path']) {
+            $github_url = 'https://raw.githubusercontent.com/nadi-pro/shipper/master/nadi.reference.yaml';
+            $reference_content = @file_get_contents($github_url);
+
+            if ($reference_content === false) {
+                $reference_content = Yaml::dump([
+                    'nadi' => [
+                        'apiKey' => '',
+                        'appKey' => '',
+                        'endpoint' => 'https://nadi.pro/api/v1',
+                    ],
+                ], 4, 2);
+            }
+
+            file_put_contents($path, $reference_content);
+        }
     }
 
     public function register()
