@@ -60,9 +60,6 @@ class Loader
         // Register a setting for Application key
         \register_setting('nadi_settings', 'nadi_application_key');
 
-        // Set the Transporter used
-        \register_setting('nadi_settings', 'nadi_transporter');
-
         // Register a setting for Sampling Strategy
         \register_setting('nadi_settings', 'nadi_sampling_strategy', [
             'default' => 'fixed_rate',
@@ -116,10 +113,8 @@ class Loader
     {
         $apiKey = get_option('nadi_api_key');
         $appKey = get_option('nadi_application_key');
-        $transporter = get_option('nadi_transporter');
         $hasApiKey = ! empty($apiKey);
         $hasAppKey = ! empty($appKey);
-        $hasTransporter = ! empty($transporter);
         $version = defined('NADI_VERSION') ? NADI_VERSION : '1.0.0';
 
         $this->renderSettingsStyles();
@@ -162,32 +157,11 @@ class Loader
                     </table>
                 </div>
 
-                <!-- Card 2: Transport Settings -->
-                <div class="nadi-card">
-                    <h2>Transport Settings</h2>
-                    <table class="form-table">
-                        <tr valign="top">
-                            <th scope="row">Transporter</th>
-                            <td>
-                                <select name="nadi_transporter" id="nadi_transporter">
-                                    <option disabled readonly <?php echo ! $hasTransporter ? 'selected' : ''; ?>>Please select one</option>
-                                    <option value="shipper" <?php echo $transporter == 'shipper' ? 'selected' : ''; ?>>Shipper</option>
-                                    <option value="http" <?php echo $transporter == 'http' ? 'selected' : ''; ?>>HTTP</option>
-                                </select>
-                                <p class="description">
-                                    <strong>Shipper</strong> uses a Go binary to batch-send logs via cron (recommended for high traffic).
-                                    <strong>HTTP</strong> sends data directly to the Nadi API on each event.
-                                </p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Card 3: Shipper Configuration -->
+                <!-- Card 2: Shipper Configuration -->
                 <?php $shipperConfig = $this->config->getShipperConfig(); ?>
                 <div class="nadi-card">
                     <h2>Shipper Configuration</h2>
-                    <p class="nadi-card-note">These settings configure the Shipper binary. They apply when using the Shipper transport.</p>
+                    <p class="nadi-card-note">These settings configure the Shipper binary used to batch-send logs to the Nadi API.</p>
 
                     <h3 class="nadi-section-title">Connection</h3>
                     <table class="form-table">
@@ -334,7 +308,7 @@ class Loader
                     </table>
                 </div>
 
-                <!-- Card 4: Sampling Configuration -->
+                <!-- Card 3: Sampling Configuration -->
                 <div class="nadi-card">
                     <h2>Sampling Configuration</h2>
                     <table class="form-table">
@@ -390,7 +364,7 @@ class Loader
                 <?php submit_button('Save Settings'); ?>
             </form>
 
-            <!-- Card 5: Test Connection -->
+            <!-- Card 4: Test Connection -->
             <div class="nadi-card">
                 <h2>Test Connection</h2>
                 <p>Verify your configuration by sending a test exception to Nadi.</p>
@@ -403,10 +377,6 @@ class Loader
                     <div class="nadi-status-item">
                         <span class="dashicons <?php echo $hasAppKey ? 'dashicons-yes-alt nadi-status-ok' : 'dashicons-dismiss nadi-status-error'; ?>"></span>
                         Application Key configured
-                    </div>
-                    <div class="nadi-status-item">
-                        <span class="dashicons <?php echo $hasTransporter ? 'dashicons-yes-alt nadi-status-ok' : 'dashicons-dismiss nadi-status-error'; ?>"></span>
-                        Transporter selected
                     </div>
                 </div>
 

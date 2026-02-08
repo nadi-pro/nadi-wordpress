@@ -6,7 +6,6 @@ use Nadi\Sampling\Config as SamplingConfig;
 use Nadi\Sampling\FixedRateSampling;
 use Nadi\Sampling\SamplingManager;
 use Nadi\Transporter\Contract as Transporter;
-use Nadi\Transporter\Http;
 use Nadi\Transporter\Log;
 use Nadi\Transporter\OpenTelemetry;
 use Nadi\Transporter\Service;
@@ -82,33 +81,10 @@ class Base
             return $this->getOpenTelemetryTransporter();
         }
 
-        $transporterConfig = $this->config()->get($transporter);
-        $config = $this->config()->parseYaml($transporterConfig['config-path']);
-
-        if (isset($config['nadi'])) {
-            // Shipper config format (nadi.yaml)
-            $apiKey = $config['nadi']['apiKey'] ?? '';
-            $appKey = $config['nadi']['appKey'] ?? $config['nadi']['token'] ?? '';
-            $endpoint = $config['nadi']['endpoint'];
-        } else {
-            // HTTP config format (nadi-http.yaml)
-            $apiKey = $config['apiKey'] ?? $config['key'] ?? '';
-            $appKey = $config['appKey'] ?? $config['token'] ?? '';
-            $endpoint = $config['endpoint'];
-        }
-
         $log_path = $this->getLogPath();
 
-        if ($transporter == 'shipper') {
-            return (new Log)->configure([
-                'path' => $log_path,
-            ]);
-        }
-
-        return (new Http)->configure([
-            'apiKey' => $apiKey,
-            'appKey' => $appKey,
-            'endpoint' => $endpoint,
+        return (new Log)->configure([
+            'path' => $log_path,
         ]);
     }
 

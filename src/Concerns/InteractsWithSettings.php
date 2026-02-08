@@ -21,13 +21,7 @@ trait InteractsWithSettings
 
     public function getTransporterType(): string
     {
-        $transporter = \get_option('nadi_transporter');
-
-        if (empty($transporter)) {
-            $transporter = 'http';
-        }
-
-        return $transporter;
+        return 'shipper';
     }
 
     public function getLogPath(): string
