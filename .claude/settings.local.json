@@ -3,7 +3,8 @@
     "allow": [
       "Bash(markdownlint:*)",
       "Bash(composer format:*)",
-      "Bash(composer install:*)"
+      "Bash(composer install:*)",
+      "Bash(php -v:*)"
     ]
   }
 }
