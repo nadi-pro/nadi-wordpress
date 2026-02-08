@@ -25,8 +25,6 @@ class Loader
 
         \add_action('admin_menu', [$this, 'addSettingsPage']);
 
-        \add_action('admin_head', [$this, 'addSettingsPageIcon']);
-
         Shipper::registerCron();
 
         return $this;
@@ -92,23 +90,13 @@ class Loader
 
     public function addSettingsPage()
     {
-        global $menu;
-
-        \add_menu_page(
+        \add_options_page(
             'Nadi Settings',
             'Nadi',
             'manage_options',
             'nadi-settings',
-            [$this, 'renderSettingsPage'],
-            '',
-            50
+            [$this, 'renderSettingsPage']
         );
-    }
-
-    public function addSettingsPageIcon()
-    {
-        global $menu;
-        $menu[50][6] = 'dashicons-analytics';
     }
 
     public function renderSettingsPage()

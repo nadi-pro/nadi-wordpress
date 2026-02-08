@@ -1,35 +1,77 @@
-# Transporters
+# Shipper Transport
 
-The plugin supports two transport methods for sending exception data to the Nadi API.
+Nadi uses the Shipper transport — a Go binary that batch-sends log files to the Nadi API.
 
-## Shipper Transport (Recommended)
+## How It Works
 
-Uses a Go binary to batch-send log files.
+1. Exceptions are captured and written as JSON files to the `log/` directory
+2. WordPress cron (`send_nadi_log_event`) triggers every minute
+3. The Shipper binary reads pending JSON logs and sends them to the Nadi API
+4. A lock file (`log/nadi.lock`) prevents concurrent execution
 
-### How It Works
-
-1. Exceptions are written as JSON to `log/` directory
-2. WordPress cron (`send_nadi_log_event`) runs every minute
-3. Go binary reads and sends pending logs
-4. Lock file prevents concurrent execution
-
-### Configuration File
+## Configuration File
 
 Location: `config/nadi.yaml`
 
+All settings can be managed from **Settings > Nadi > Shipper** tab in WordPress admin.
+
 ```yaml
 nadi:
+  # API credentials
   apiKey: "your-sanctum-token"
-  appKey: "your-application-key"
+  token: "your-application-key"
+
+  # Connection
   endpoint: "https://nadi.pro/api/"
-  version: "v1"
+  accept: "application/vnd.nadi.v1+json"
+
+  # Storage
+  storage: "/path/to/wp-content/plugins/nadi-wordpress/log"
+  trackerFile: "tracker.json"
+  filePattern: "*.json"
+  deadLetterDir: ""
+
+  # Performance
+  workers: 4
+  compress: false
+  persistent: false
+
+  # Retry
+  maxTries: 3
+  timeout: "1m"
+  checkInterval: "5s"
+
+  # Security (Beta)
+  tlsCACert: ""
+  tlsSkipVerify: false
+
+  # Monitoring (Beta)
+  healthCheckAddr: ""
+  metricsEnabled: false
 ```
 
-### Benefits
+### Settings Reference
 
-- Batched sending reduces API calls
-- Survives network failures (logs are queued)
-- Lower impact on request latency
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `apiKey` | string | — | Your Nadi API key (Sanctum token) |
+| `token` | string | — | Your application key |
+| `endpoint` | string | `https://nadi.pro/api/` | Nadi API endpoint URL |
+| `accept` | string | `application/vnd.nadi.v1+json` | HTTP Accept header |
+| `storage` | string | `log/` | Directory where JSON log files are written |
+| `trackerFile` | string | `tracker.json` | File used to track sent logs |
+| `filePattern` | string | `*.json` | Glob pattern for log files to process |
+| `deadLetterDir` | string | _(empty)_ | Directory for failed deliveries |
+| `workers` | int | `4` | Number of concurrent workers |
+| `compress` | bool | `false` | Enable gzip compression for API requests |
+| `persistent` | bool | `false` | Keep HTTP connections alive between requests |
+| `maxTries` | int | `3` | Maximum retry attempts per log batch |
+| `timeout` | string | `1m` | Request timeout (e.g., `30s`, `1m`, `5m`) |
+| `checkInterval` | string | `5s` | Interval between checking for new logs |
+| `tlsCACert` | string | _(empty)_ | Path to custom TLS CA certificate |
+| `tlsSkipVerify` | bool | `false` | Skip TLS certificate verification |
+| `healthCheckAddr` | string | _(empty)_ | Address for health check endpoint |
+| `metricsEnabled` | bool | `false` | Enable Prometheus metrics export |
 
 ### Binary Location
 
@@ -37,57 +79,36 @@ nadi:
 wp-content/plugins/nadi-wordpress/bin/shipper
 ```
 
-## HTTP Transport
+## Cron Setup
 
-Sends exceptions directly via API calls.
+The Shipper relies on WordPress cron to periodically send logs. See [Production Setup](04-production-setup.md) for recommended cron configuration.
 
-### How It Works
+### Default Behavior
 
-1. Exception occurs
-2. Immediately sent to Nadi API via HTTP
-3. Uses `nadi-pro/nadi-php` SDK
+By default, the plugin registers a WordPress cron event (`send_nadi_log_event`) that runs every minute. WordPress cron is a pseudo-cron — it only triggers when someone visits the site.
 
-### Configuration File
+### Verify Cron is Running
 
-Location: `config/nadi-http.yaml`
+```bash
+# List all scheduled cron events
+wp cron event list
 
-```yaml
-apiKey: "your-sanctum-token"
-appKey: "your-application-key"
-endpoint: "https://nadi.pro/api/"
-version: "v1"
+# Look for send_nadi_log_event
+wp cron event list | grep nadi
+
+# Manually trigger the event
+wp cron event run send_nadi_log_event
 ```
 
-### Benefits
+## Benefits
 
-- No binary dependency
-- Immediate delivery
-- Simpler setup
-
-### Considerations
-
-- More network calls
-- Request latency impact
-- Requires stable network
-
-## Choosing a Transporter
-
-| Factor           | Shipper        | HTTP           |
-|------------------|----------------|----------------|
-| Latency impact   | Low            | Higher         |
-| Network calls    | Batched        | Per-exception  |
-| Reliability      | Queued         | Immediate      |
-| Setup complexity | Binary install | None           |
-
-## Switching Transporters
-
-1. Navigate to **Settings > Nadi**
-2. Select **Transporter** dropdown
-3. Click **Save Changes**
-
-Both configuration files are maintained, so switching is seamless.
+- **Batched sending** — reduces API calls and network overhead
+- **Queued delivery** — survives network failures; logs are retried
+- **Low latency impact** — exceptions are written to disk, not sent during the request
+- **Concurrent workers** — multiple workers process logs in parallel
 
 ## Next Steps
 
 - [Sampling](02-sampling.md)
+- [Production Setup](04-production-setup.md)
 - [Programmatic Usage](03-programmatic-usage.md)
