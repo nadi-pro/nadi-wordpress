@@ -10,6 +10,25 @@ use Symfony\Component\Yaml\Yaml;
 
 class Config
 {
+    public const SHIPPER_FIELDS = [
+        'nadi_shipper_endpoint' => ['key' => 'endpoint', 'type' => 'string'],
+        'nadi_shipper_accept' => ['key' => 'accept', 'type' => 'string'],
+        'nadi_shipper_storage' => ['key' => 'storage', 'type' => 'string'],
+        'nadi_shipper_tracker_file' => ['key' => 'trackerFile', 'type' => 'string'],
+        'nadi_shipper_persistent' => ['key' => 'persistent', 'type' => 'bool'],
+        'nadi_shipper_max_tries' => ['key' => 'maxTries', 'type' => 'int'],
+        'nadi_shipper_timeout' => ['key' => 'timeout', 'type' => 'string'],
+        'nadi_shipper_check_interval' => ['key' => 'checkInterval', 'type' => 'string'],
+        'nadi_shipper_file_pattern' => ['key' => 'filePattern', 'type' => 'string'],
+        'nadi_shipper_dead_letter_dir' => ['key' => 'deadLetterDir', 'type' => 'string'],
+        'nadi_shipper_compress' => ['key' => 'compress', 'type' => 'bool'],
+        'nadi_shipper_workers' => ['key' => 'workers', 'type' => 'int'],
+        'nadi_shipper_tls_ca_cert' => ['key' => 'tlsCACert', 'type' => 'string'],
+        'nadi_shipper_tls_skip_verify' => ['key' => 'tlsSkipVerify', 'type' => 'bool'],
+        'nadi_shipper_health_check_addr' => ['key' => 'healthCheckAddr', 'type' => 'string'],
+        'nadi_shipper_metrics_enabled' => ['key' => 'metricsEnabled', 'type' => 'bool'],
+    ];
+
     private $list = [];
 
     public function __construct()
@@ -285,6 +304,31 @@ class Config
         }
 
         Exception::missingConfigFile();
+    }
+
+    public function getShipperConfig(): array
+    {
+        try {
+            $shipper = $this->get('shipper');
+            $config = $this->parseYaml($shipper['config-path']);
+
+            return $config['nadi'] ?? [];
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    public function updateShipperSettings(array $settings): void
+    {
+        $shipper = $this->get('shipper');
+        $config = $this->parseYaml($shipper['config-path']);
+
+        foreach ($settings as $yamlKey => $value) {
+            $config['nadi'][$yamlKey] = $value;
+        }
+
+        $updated_yaml = Yaml::dump($config, 4, 2);
+        file_put_contents($shipper['config-path'], $updated_yaml);
     }
 
     public function get($type)

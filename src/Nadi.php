@@ -105,6 +105,21 @@ class Nadi
                 'nadi_load_factor' => sanitize_text_field($this->post_data['nadi_load_factor']),
                 'nadi_interval_seconds' => sanitize_text_field($this->post_data['nadi_interval_seconds']),
             ]);
+
+            $shipperSettings = [];
+            foreach (Config::SHIPPER_FIELDS as $formField => $fieldConfig) {
+                $yamlKey = $fieldConfig['key'];
+                $type = $fieldConfig['type'];
+
+                if ($type === 'bool') {
+                    $shipperSettings[$yamlKey] = isset($this->post_data[$formField]);
+                } elseif ($type === 'int') {
+                    $shipperSettings[$yamlKey] = (int) sanitize_text_field($this->post_data[$formField] ?? '0');
+                } else {
+                    $shipperSettings[$yamlKey] = sanitize_text_field($this->post_data[$formField] ?? '');
+                }
+            }
+            $this->config->updateShipperSettings($shipperSettings);
         }
     }
 
