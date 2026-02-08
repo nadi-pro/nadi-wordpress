@@ -6,7 +6,7 @@ Get exception monitoring running in your WordPress site.
 
 1. Log in to [Nadi Dashboard](https://nadi.pro)
 2. Create or select an application
-3. Copy your **API Key** (Sanctum token) and **App Key** (application token)
+3. Copy your **API Key** (Sanctum token) and **App Key** (application key)
 
 ## Step 2: Configure the Plugin
 

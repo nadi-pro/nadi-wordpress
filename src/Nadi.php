@@ -147,7 +147,7 @@ class Nadi
             $appKey = sanitize_text_field($this->post_data['nadi_application_key']);
 
             $this->updateConfig('shipper', 'apiKey', $apiKey);
-            $this->updateConfig('shipper', 'token', $appKey);
+            $this->updateConfig('shipper', 'appKey', $appKey);
 
             $this->updateSamplingConfig([
                 'nadi_sampling_strategy' => sanitize_text_field($this->post_data['nadi_sampling_strategy']),

@@ -104,7 +104,7 @@ Exceptions are captured but not appearing in Nadi dashboard.
    ```
 
    Common errors:
-   - `token is required` — set your application key in Settings > Nadi > Credentials
+   - `appKey is required` — set your application key in Settings > Nadi > Credentials
    - `config file not found` — verify `config/nadi.yaml` exists
 
 7. **Manually trigger the cron**

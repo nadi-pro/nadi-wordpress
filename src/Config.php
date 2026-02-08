@@ -170,7 +170,7 @@ class Config
     {
         $this->updateTransporter($transporter);
 
-        if ($key == 'token') {
+        if ($key == 'appKey') {
             \update_option('nadi_application_key', $value);
         }
 

@@ -19,7 +19,7 @@ All settings can be managed from **Settings > Nadi > Shipper** tab in WordPress 
 nadi:
   # API credentials
   apiKey: "your-sanctum-token"
-  token: "your-application-key"
+  appKey: "your-application-key"
 
   # Connection
   endpoint: "https://nadi.pro/api/"
@@ -55,7 +55,7 @@ nadi:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `apiKey` | string | — | Your Nadi API key (Sanctum token) |
-| `token` | string | — | Your application key |
+| `appKey` | string | — | Your application key |
 | `endpoint` | string | `https://nadi.pro/api/` | Nadi API endpoint URL |
 | `accept` | string | `application/vnd.nadi.v1+json` | HTTP Accept header |
 | `storage` | string | `log/` | Directory where JSON log files are written |
