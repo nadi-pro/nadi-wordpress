@@ -27,5 +27,11 @@
     },
     "scripts": {
         "format" : "@php vendor/bin/pint"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": true
+        }
     }
 }

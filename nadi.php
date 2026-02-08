@@ -9,13 +9,13 @@
  * that starts the plugin.
  *
  * @link              https://nadi.pro
- * @since             1.0.0
+ * @since             2.0.0
  *
  * @wordpress-plugin
  * Plugin Name:       Nadi
  * Plugin URI:        https://github.com/nadi-pro/nadi-wordpress
  * Description:       Monitoring applications made simple for developers. Monitor applications crashes with Nadi, your Crash Care Companion
- * Version:           1.0.0
+ * Version:           2.0.0
  * Author:            Nadi Pro
  * Author URI:        https://nadi.pro/
  * License:           GPL-2.0+

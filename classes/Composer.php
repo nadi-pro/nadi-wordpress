@@ -11,7 +11,7 @@ class Composer
 
     public static function installDependencies()
     {
-        exec('cd '.NADI_DIR.' && composer install');
+        exec('cd '.NADI_DIR.' && php composer.phar install --no-dev --optimize-autoloader 2>&1');
     }
 
     public static function isInstalled(): bool
