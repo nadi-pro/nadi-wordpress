@@ -88,6 +88,15 @@ class Nadi
 
     public function run()
     {
+        if ($this->request_method !== 'POST' || ! isset($this->post_data['submit'])) {
+            return;
+        }
+
+        \add_action('admin_init', [$this, 'handlePostActions']);
+    }
+
+    public function handlePostActions()
+    {
         if ($this->isInstallingShipper()) {
             try {
                 Shipper::install();
