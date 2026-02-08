@@ -83,7 +83,7 @@ class Nadi
 
     public function getLogPath()
     {
-        return NADI_DIR.'/log';
+        return NADI_DIR.'log';
     }
 
     public function run()

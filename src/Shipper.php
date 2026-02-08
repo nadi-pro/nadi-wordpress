@@ -108,7 +108,7 @@ class Shipper
     public static function getDefaultConfigPath(): ?string
     {
         $pluginDir = dirname(__DIR__);
-        $configPath = $pluginDir.'/nadi.yaml';
+        $configPath = $pluginDir.'/config/nadi.yaml';
 
         return file_exists($configPath) ? $configPath : null;
     }
