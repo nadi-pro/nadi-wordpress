@@ -27,6 +27,8 @@ class Loader
 
         \add_action('admin_head', [$this, 'addSettingsPageIcon']);
 
+        Shipper::registerCron();
+
         return $this;
     }
 

@@ -169,6 +169,18 @@ class Shipper
     }
 
     /**
+     * Register cron schedule and handler on every plugin load.
+     */
+    public static function registerCron(): void
+    {
+        $shipper = new self;
+
+        if ($shipper->isInstalled()) {
+            $shipper->setupCron();
+        }
+    }
+
+    /**
      * Set up the WordPress cron job.
      */
     private function setupCron(): void
@@ -177,13 +189,20 @@ class Shipper
             return;
         }
 
-        add_action('send_nadi_log_event', 'sendNadiLog');
+        add_filter('cron_schedules', function ($schedules) {
+            $schedules['nadi_every_minute'] = [
+                'interval' => 60,
+                'display' => 'Every Minute',
+            ];
 
-        if (! wp_next_scheduled('send_nadi_log_event')) {
-            wp_schedule_event(time(), 'minute', 'send_nadi_log_event');
-        }
+            return $schedules;
+        });
 
         add_action('send_nadi_log_event', 'sendNadiLogHandler');
+
+        if (! wp_next_scheduled('send_nadi_log_event')) {
+            wp_schedule_event(time(), 'nadi_every_minute', 'send_nadi_log_event');
+        }
     }
 
     /**

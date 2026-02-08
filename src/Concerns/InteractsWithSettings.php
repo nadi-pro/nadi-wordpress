@@ -26,7 +26,13 @@ trait InteractsWithSettings
 
     public function getLogPath(): string
     {
-        return \get_option('nadi_storage');
+        $path = \get_option('nadi_storage');
+
+        if (empty($path)) {
+            $path = defined('NADI_DIR') ? NADI_DIR.'log' : dirname(__DIR__, 2).'/log';
+        }
+
+        return $path;
     }
 
     public function getHiddenRequestHeaders(): array

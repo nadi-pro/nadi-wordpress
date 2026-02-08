@@ -3,7 +3,6 @@
 namespace Nadi\WordPress;
 
 use Nadi\WordPress\Exceptions\WordPressException;
-use Nadi\WordPress\Handler\HandleExceptionEvent;
 
 /**
  * @todo allow test the configuration by calling transporter->test()
@@ -125,7 +124,7 @@ class Nadi
             );
 
             try {
-                HandleExceptionEvent::make($exception);
+                \Nadi\WordPress\Handler\TestExceptionEvent::make($exception);
 
                 $logPath = $this->getLogPath();
                 \add_action('admin_notices', function () use ($logPath) {
