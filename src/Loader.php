@@ -115,7 +115,9 @@ class Loader
         $appKey = get_option('nadi_application_key');
         $hasApiKey = ! empty($apiKey);
         $hasAppKey = ! empty($appKey);
-        $version = defined('NADI_VERSION') ? NADI_VERSION : '1.0.0';
+        $shipper = new Shipper;
+        $shipperInstalled = $shipper->isInstalled();
+        $version = defined('NADI_VERSION') ? NADI_VERSION : '2.0.0';
 
         $this->renderSettingsStyles();
         ?>
@@ -364,12 +366,15 @@ class Loader
                 <?php submit_button('Save Settings'); ?>
             </form>
 
-            <!-- Card 4: Test Connection -->
+            <!-- Card 4: Status & Test Connection -->
             <div class="nadi-card">
-                <h2>Test Connection</h2>
-                <p>Verify your configuration by sending a test exception to Nadi.</p>
+                <h2>Status &amp; Test Connection</h2>
 
                 <div class="nadi-status-checklist">
+                    <div class="nadi-status-item">
+                        <span class="dashicons <?php echo $shipperInstalled ? 'dashicons-yes-alt nadi-status-ok' : 'dashicons-dismiss nadi-status-error'; ?>"></span>
+                        Shipper binary <?php echo $shipperInstalled ? 'installed' : 'not installed'; ?>
+                    </div>
                     <div class="nadi-status-item">
                         <span class="dashicons <?php echo $hasApiKey ? 'dashicons-yes-alt nadi-status-ok' : 'dashicons-dismiss nadi-status-error'; ?>"></span>
                         API Key configured
@@ -380,12 +385,23 @@ class Loader
                     </div>
                 </div>
 
-                <form method="post" action="options.php">
-                    <?php settings_fields('nadi_settings'); ?>
-                    <?php do_settings_sections('nadi_settings'); ?>
-                    <input type="hidden" name="test" value="true">
-                    <?php submit_button('Test Connection', 'secondary'); ?>
-                </form>
+                <?php if (! $shipperInstalled) { ?>
+                    <p class="nadi-card-note">The Shipper binary is required to send crash reports to Nadi. Click below to download and install it.</p>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin.php?page=nadi-settings')); ?>">
+                        <?php wp_nonce_field('nadi_install_shipper', 'nadi_install_nonce'); ?>
+                        <input type="hidden" name="submit" value="true">
+                        <input type="hidden" name="install_shipper" value="true">
+                        <?php submit_button('Install Shipper', 'primary', 'submit_install', false); ?>
+                    </form>
+                <?php } else { ?>
+                    <p>Verify your configuration by sending a test exception to Nadi.</p>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin.php?page=nadi-settings')); ?>">
+                        <?php wp_nonce_field('nadi_test_connection', 'nadi_test_nonce'); ?>
+                        <input type="hidden" name="submit" value="true">
+                        <input type="hidden" name="test" value="true">
+                        <?php submit_button('Test Connection', 'secondary', 'submit_test', false); ?>
+                    </form>
+                <?php } ?>
             </div>
         </div>
         <?php

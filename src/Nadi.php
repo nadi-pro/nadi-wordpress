@@ -3,6 +3,7 @@
 namespace Nadi\WordPress;
 
 use Nadi\WordPress\Exceptions\WordPressException;
+use Nadi\WordPress\Handler\HandleExceptionEvent;
 
 /**
  * @todo allow test the configuration by calling transporter->test()
@@ -27,7 +28,7 @@ class Nadi
         if (defined('NADI_VERSION')) {
             $this->version = NADI_VERSION;
         } else {
-            $this->version = '1.0.0';
+            $this->version = '2.0.0';
         }
         $this->plugin_name = 'Nadi for WordPress';
 
@@ -66,7 +67,18 @@ class Nadi
 
     public function isTesting()
     {
-        return $this->isFormSubmission() && isset($this->post_data['test']);
+        return $this->isFormSubmission()
+            && isset($this->post_data['test'])
+            && isset($this->post_data['nadi_test_nonce'])
+            && wp_verify_nonce($this->post_data['nadi_test_nonce'], 'nadi_test_connection');
+    }
+
+    public function isInstallingShipper()
+    {
+        return $this->isFormSubmission()
+            && isset($this->post_data['install_shipper'])
+            && isset($this->post_data['nadi_install_nonce'])
+            && wp_verify_nonce($this->post_data['nadi_install_nonce'], 'nadi_install_shipper');
     }
 
     public function getLogPath()
@@ -76,18 +88,45 @@ class Nadi
 
     public function run()
     {
+        if ($this->isInstallingShipper()) {
+            try {
+                Shipper::install();
+                \add_action('admin_notices', function () {
+                    echo '<div class="notice notice-success is-dismissible"><p>Shipper binary installed successfully.</p></div>';
+                });
+            } catch (\Throwable $e) {
+                \add_action('admin_notices', function () use ($e) {
+                    echo '<div class="notice notice-error is-dismissible"><p>Failed to install Shipper: '.esc_html($e->getMessage()).'</p></div>';
+                });
+            }
+
+            return;
+        }
+
         if ($this->isTesting()) {
-            $error = new \WP_Error('nadi_exception_test', 'An error occurred in my code.', ['file' => __FILE__, 'line' => __LINE__]);
-
-            $error_data = $error->get_error_data();
-            $message = $error->get_error_message();
-            $code = (int) $error->get_error_code();
             $trace = debug_backtrace();
-            $file = $trace[0]['file'];
-            $line = $trace[0]['line'];
-            $class = get_class($error);
+            $exception = new WordPressException(
+                $trace,
+                'Nadi test exception - verifying connection.',
+                __FILE__,
+                __LINE__,
+                0,
+                [],
+                WordPressException::class
+            );
 
-            throw new WordPressException($trace, $message, $file, $line, $code, $error_data, $class);
+            try {
+                HandleExceptionEvent::make($exception);
+                \add_action('admin_notices', function () {
+                    echo '<div class="notice notice-success is-dismissible"><p>Test exception sent to Nadi successfully.</p></div>';
+                });
+            } catch (\Throwable $e) {
+                \add_action('admin_notices', function () use ($e) {
+                    echo '<div class="notice notice-error is-dismissible"><p>Test connection failed: '.esc_html($e->getMessage()).'</p></div>';
+                });
+            }
+
+            return;
         }
 
         if ($this->isFormSubmission()) {
