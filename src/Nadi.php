@@ -126,8 +126,12 @@ class Nadi
 
             try {
                 HandleExceptionEvent::make($exception);
+
+                $configPath = $this->config->get('shipper')['config-path'];
+                Shipper::sendRecords($configPath);
+
                 \add_action('admin_notices', function () {
-                    echo '<div class="notice notice-success is-dismissible"><p>Test exception sent to Nadi successfully.</p></div>';
+                    echo '<div class="notice notice-success is-dismissible"><p>Test exception sent to Nadi successfully. Check your <a href="https://nadi.pro/dashboard" target="_blank">Nadi dashboard</a> for the new issue.</p></div>';
                 });
             } catch (\Throwable $e) {
                 \add_action('admin_notices', function () use ($e) {
