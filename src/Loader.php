@@ -201,7 +201,8 @@ class Loader
                                 <h3><span class="dashicons dashicons-portfolio"></span> Storage</h3>
                                 <div class="nadi-field">
                                     <label>Storage Path</label>
-                                    <input type="text" name="nadi_shipper_storage" value="<?php echo esc_attr($shipperConfig['storage'] ?? '/var/log/nadi'); ?>" />
+                                    <?php $defaultStorage = defined('NADI_DIR') ? NADI_DIR.'log' : '/var/log/nadi'; ?>
+                                    <input type="text" name="nadi_shipper_storage" value="<?php echo esc_attr($shipperConfig['storage'] ?? $defaultStorage); ?>" />
                                     <p class="description">Log storage directory path.</p>
                                 </div>
                                 <div class="nadi-field">

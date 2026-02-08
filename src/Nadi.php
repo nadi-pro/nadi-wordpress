@@ -127,11 +127,12 @@ class Nadi
             try {
                 HandleExceptionEvent::make($exception);
 
-                $configPath = $this->config->get('shipper')['config-path'];
-                Shipper::sendRecords($configPath);
-
-                \add_action('admin_notices', function () {
-                    echo '<div class="notice notice-success is-dismissible"><p>Test exception sent to Nadi successfully. Check your <a href="https://nadi.pro/dashboard" target="_blank">Nadi dashboard</a> for the new issue.</p></div>';
+                $logPath = $this->getLogPath();
+                \add_action('admin_notices', function () use ($logPath) {
+                    echo '<div class="notice notice-success is-dismissible">';
+                    echo '<p>Test exception logged successfully. The Shipper will send it to <a href="https://nadi.pro/dashboard" target="_blank">Nadi</a> on the next cron run (every minute).</p>';
+                    echo '<p class="description">Log path: <code>'.esc_html($logPath).'</code></p>';
+                    echo '</div>';
                 });
             } catch (\Throwable $e) {
                 \add_action('admin_notices', function () use ($e) {
@@ -147,7 +148,7 @@ class Nadi
             $appKey = sanitize_text_field($this->post_data['nadi_application_key']);
 
             $this->updateConfig('shipper', 'apiKey', $apiKey);
-            $this->updateConfig('shipper', 'appKey', $appKey);
+            $this->updateConfig('shipper', 'token', $appKey);
 
             $this->updateSamplingConfig([
                 'nadi_sampling_strategy' => sanitize_text_field($this->post_data['nadi_sampling_strategy']),
