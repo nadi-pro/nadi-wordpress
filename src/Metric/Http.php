@@ -17,6 +17,8 @@ class Http extends Base
         $uri = $route = str_replace($home_url, '', $current_uri);
         $headers = getallheaders();
 
+        $hiddenHeaders = \get_option('nadi_hidden_request_headers', ['authorization', 'php-auth-pw']);
+
         return [
             'http.client.duration' => $startTime ? floor((microtime(true) - $startTime) * 1000) : null,
             'http.scheme' => is_ssl() ? 'https' : 'http',
@@ -26,10 +28,8 @@ class Http extends Base
             'http.query' => $_SERVER['QUERY_STRING'],
             'http.uri' => $uri,
             'http.headers' => Arr::undot(collect($headers)
-                ->reject(function ($header, $key) {
-                    return in_array($key, [
-                        'authorization', 'nadi-key',
-                    ]);
+                ->reject(function ($header, $key) use ($hiddenHeaders) {
+                    return in_array(strtolower($key), $hiddenHeaders);
                 })
                 ->toArray()),
         ];
@@ -41,10 +41,6 @@ class Http extends Base
             return $_SERVER['SCRIPT_STATUS'];
         }
 
-        if (isset($_SERVER['SCRIPT_STATUS'])) {
-            return $_SERVER['SCRIPT_STATUS'];
-        }
-
-        return '';
+        return http_response_code() ?: '';
     }
 }

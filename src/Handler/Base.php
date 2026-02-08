@@ -8,6 +8,7 @@ use Nadi\Sampling\SamplingManager;
 use Nadi\Transporter\Contract as Transporter;
 use Nadi\Transporter\Http;
 use Nadi\Transporter\Log;
+use Nadi\Transporter\OpenTelemetry;
 use Nadi\Transporter\Service;
 use Nadi\WordPress\Concerns\InteractsWithEnvironment;
 use Nadi\WordPress\Concerns\InteractsWithSettings;
@@ -76,7 +77,13 @@ class Base
     public function getTransporter()
     {
         $transporter = $this->getTransporterType();
-        $config = $this->config()->parseYaml($this->config()->get($transporter)['config-path']);
+
+        if ($transporter == 'opentelemetry') {
+            return $this->getOpenTelemetryTransporter();
+        }
+
+        $transporterConfig = $this->config()->get($transporter);
+        $config = $this->config()->parseYaml($transporterConfig['config-path']);
 
         if (isset($config['nadi'])) {
             // Shipper config format (nadi.yaml)
@@ -102,6 +109,19 @@ class Base
             'apiKey' => $apiKey,
             'appKey' => $appKey,
             'endpoint' => $endpoint,
+        ]);
+    }
+
+    private function getOpenTelemetryTransporter()
+    {
+        $config = $this->config()->get('opentelemetry');
+
+        return (new OpenTelemetry)->configure([
+            'endpoint' => \get_option('nadi_otel_endpoint', $config['endpoint']),
+            'service_name' => \get_option('nadi_otel_service_name', $config['service_name']),
+            'service_version' => \get_option('nadi_otel_service_version', $config['service_version']),
+            'deployment_environment' => \get_option('nadi_otel_deployment_environment', $config['deployment_environment']),
+            'suppress_errors' => \get_option('nadi_otel_suppress_errors', $config['suppress_errors']),
         ]);
     }
 

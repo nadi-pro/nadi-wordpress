@@ -13,6 +13,10 @@ class HandleExceptionEvent extends Base
 {
     public static function make(Error|WordPressException $exception)
     {
+        if (! (bool) \get_option('nadi_enabled', true)) {
+            return;
+        }
+
         if ($exception instanceof WordPressException) {
             return (new self)->handle($exception);
         }

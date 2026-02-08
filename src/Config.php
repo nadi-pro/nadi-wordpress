@@ -15,6 +15,7 @@ class Config
     public function __construct()
     {
         $this->list = [
+            'enabled' => true,
             'shipper' => [
                 'config-path' => dirname(dirname(__FILE__)).'/config/nadi.yaml',
                 'bin' => dirname(dirname(__FILE__)).'/bin/shipper',
@@ -24,6 +25,31 @@ class Config
             ],
             'http' => [
                 'config-path' => dirname(dirname(__FILE__)).'/config/nadi-http.yaml',
+            ],
+            'opentelemetry' => [
+                'endpoint' => 'http://localhost:4318',
+                'service_name' => 'wordpress-app',
+                'service_version' => '1.0.0',
+                'service_namespace' => '',
+                'service_instance_id' => '',
+                'deployment_environment' => 'production',
+                'suppress_errors' => true,
+            ],
+            'http_filtering' => [
+                'hidden_request_headers' => [
+                    'authorization',
+                    'php-auth-pw',
+                ],
+                'hidden_parameters' => [
+                    'password',
+                    'password_confirmation',
+                ],
+                'hidden_response_parameters' => [],
+                'ignored_status_codes' => [
+                    100, 101, 102, 103,
+                    200, 201, 202, 203, 204, 205, 206, 207,
+                    300, 302, 303, 304, 305, 306, 307, 308,
+                ],
             ],
             'sampling' => [
                 'strategy' => 'fixed_rate',     // The strategy to use: fixed_rate, dynamic_rate, interval
@@ -45,21 +71,25 @@ class Config
 
     public function setup(): self
     {
+        \update_option('nadi_enabled', $this->get('enabled'));
+
         $shipper = $this->get('shipper');
         if (! file_exists($shipper['config-path'])) {
             $github_url = 'https://raw.githubusercontent.com/nadi-pro/shipper/master/nadi.reference.yaml';
-            $reference_content = file_get_contents($github_url);
+            $reference_content = @file_get_contents($github_url);
 
-            file_put_contents($shipper['config-path'], $reference_content);
+            if ($reference_content !== false) {
+                file_put_contents($shipper['config-path'], $reference_content);
+            }
         }
 
         $http = $this->get('http');
         if (! file_exists($http['config-path'])) {
             $content = Yaml::dump([
-                'apiKey' => '',   // Sanctum personal access token (Authorization: Bearer)
-                'appKey' => '',   // Application identifier token (Nadi-App-Token header)
+                'apiKey' => '',
+                'appKey' => '',
                 'version' => 'v1',
-                'endpoint' => 'https://nadi.pro/api/',
+                'endpoint' => 'https://api.nadi.pro',
             ], 4, 2);
 
             file_put_contents($http['config-path'], $content);
@@ -67,17 +97,25 @@ class Config
 
         \update_option('nadi_storage', $this->get('log')['storage-path']);
 
+        $otel = $this->get('opentelemetry');
+        \update_option('nadi_otel_endpoint', data_get($otel, 'endpoint'));
+        \update_option('nadi_otel_service_name', data_get($otel, 'service_name'));
+        \update_option('nadi_otel_service_version', data_get($otel, 'service_version'));
+        \update_option('nadi_otel_deployment_environment', data_get($otel, 'deployment_environment'));
+        \update_option('nadi_otel_suppress_errors', data_get($otel, 'suppress_errors'));
+
+        $httpFiltering = $this->get('http_filtering');
+        \update_option('nadi_hidden_request_headers', data_get($httpFiltering, 'hidden_request_headers'));
+        \update_option('nadi_hidden_parameters', data_get($httpFiltering, 'hidden_parameters'));
+        \update_option('nadi_hidden_response_parameters', data_get($httpFiltering, 'hidden_response_parameters'));
+        \update_option('nadi_ignored_status_codes', data_get($httpFiltering, 'ignored_status_codes'));
+
         $sampling = $this->get('sampling');
-
         \update_option('nadi_sampling_strategy', data_get($sampling, 'strategy'));
-
-        \update_option('nadi_sampling_rate', data_get($sampling, 'config.nadi_sampling_rate'));
-
-        \update_option('nadi_base_rate', data_get($sampling, 'config.nadi_base_rate'));
-
-        \update_option('nadi_load_factor', data_get($sampling, 'config.nadi_load_factor'));
-
-        \update_option('nadi_interval_seconds', data_get($sampling, 'config.nadi_interval_seconds'));
+        \update_option('nadi_sampling_rate', data_get($sampling, 'config.sampling_rate'));
+        \update_option('nadi_base_rate', data_get($sampling, 'config.base_rate'));
+        \update_option('nadi_load_factor', data_get($sampling, 'config.load_factor'));
+        \update_option('nadi_interval_seconds', data_get($sampling, 'config.interval_seconds'));
 
         return $this;
     }
@@ -141,7 +179,7 @@ class Config
     {
         $this->updateTransporter($transporter);
 
-if ($key == 'appKey' || $key == 'token') {
+        if ($key == 'appKey' || $key == 'token') {
             \update_option('nadi_application_key', $value);
         }
 
@@ -185,7 +223,7 @@ if ($key == 'appKey' || $key == 'token') {
                 'apiKey' => '',
                 'appKey' => '',
                 'version' => 'v1',
-                'endpoint' => 'https://nadi.pro/api/',
+                'endpoint' => 'https://api.nadi.pro',
             ], 4, 2);
 
             file_put_contents($path, $content);
@@ -198,7 +236,7 @@ if ($key == 'appKey' || $key == 'token') {
                     'nadi' => [
                         'apiKey' => '',
                         'appKey' => '',
-                        'endpoint' => 'https://nadi.pro/api/v1',
+                        'endpoint' => 'https://api.nadi.pro',
                     ],
                 ], 4, 2);
             }
