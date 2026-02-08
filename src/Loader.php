@@ -461,7 +461,7 @@ class Loader
                 border: 1px solid #c3c4c7;
                 border-top: none;
                 border-radius: 0 0 4px 4px;
-                padding: 0 24px 24px;
+                padding: 24px;
             }
             .nadi-tab-content .form-table th {
                 padding-top: 15px;
